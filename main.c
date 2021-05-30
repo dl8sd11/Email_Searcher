@@ -1,5 +1,5 @@
 #include "api.h"
-#include <stdio.h>
+#include "help.h"
 
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
 // and 2000 queries for you to debug.
