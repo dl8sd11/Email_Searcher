@@ -1,5 +1,4 @@
-#ifndef IO
-#define IO
+#pragma once
 #include "../api.h"
 typedef struct data {
     int n_mails, n_queries;
@@ -11,4 +10,8 @@ typedef struct ans {
     int* array;
     int len;
 } Ans;
-#endif
+
+typedef struct token_hash {
+    int** hash;
+    int* len;
+} TokenHash;

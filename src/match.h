@@ -1,8 +1,17 @@
-#ifndef MATCH_H
-#define MATCH_H
+#pragma once
 #include "io.h"
+#include "./expression_parser.h"
+#include "./group.h"
 
-void queryMatch (Data *data, char *expr, Ans *ans) {
 
+void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
+    int n = data->n_mails;
+
+    ans->len = 0;
+    for (int i=0; i<n; i++) {
+        if (expression_parser(expr, mail_hash->hash[i], mail_hash->len[i])) {
+            ans->array[ans->len++] = data->mails[i].id;
+        }
+    }
+    qsort(ans->array, ans->len, sizeof(int), comp);
 }
-#endif

@@ -1,9 +1,24 @@
+#pragma once
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include "expression_parser.h"
+#include "hash.h"
 
-bool check(char* token) { return false; }	//fake checker function
+bool check(char* token, int* mail_hash, int mail_len) {
+    int token_hash = hash1(token);
+    // mail_hash should be sorted
+
+    int L = -1, R = mail_len;
+    // lower_bound(mail_hash, token_hash)
+    while (L < R - 1) {
+        int M = (L + R) >> 1;
+        if (mail_hash[M] <= token_hash) L = M;
+        else R = M;
+    }
+
+    return mail_hash[L] == token_hash; 
+}
 
 bool inToken(char key) {
 	if (key >= 'A' && key <= 'Z') return true;
@@ -27,7 +42,7 @@ bool isOperator(char key) {
 	return false;
 }
 
-int* Parse(int stidx, char* input) {
+int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	int* output = malloc(sizeof(int)*2);
 	bool parts[1000];
 	int boolidx = 0;
@@ -44,7 +59,7 @@ int* Parse(int stidx, char* input) {
 		} else if (isOperator(input[i])) {
 			token[tokenidx] = '\0';
 			tokenidx = 0;
-			bool bv = check(token);
+			bool bv = check(token, mail_hash, mail_len);
 			if (not) {
 				bv = !bv;
 				not = false;
@@ -71,7 +86,7 @@ int* Parse(int stidx, char* input) {
 		} else if (isParenthese(input[i])) {
 			if (input[i] == '(') {
 				int* unlock;
-				unlock = Parse(i+1, input);
+				unlock = Parse(i+1, input, mail_hash, mail_len);
 				i = unlock[0];
 				bool bv = (bool)unlock[1];
 				if (not) {
@@ -103,8 +118,8 @@ int* Parse(int stidx, char* input) {
 	if (tokenidx != 0) {
 		token[tokenidx] = '\0';
 		bool bv;
-		if (not) bv = !check(token);
-		else bv = check(token);
+		if (not) bv = !check(token, mail_hash, mail_len);
+		else bv = check(token, mail_hash, mail_len);
 		if (and) parts[boolidx] = parts[boolidx] && bv;
 		else parts[boolidx] = bv;
 	}
@@ -117,7 +132,7 @@ int* Parse(int stidx, char* input) {
 	return output;
 }
 
-bool expression_parser(char* expression) {
-	int* parseResult = Parse(0, expression);
+bool expression_parser(char* expression, int* mail_hash, int mail_len) {
+	int* parseResult = Parse(0, expression, mail_hash, mail_len);
 	return (bool)parseResult[1];
 }

@@ -1,7 +1,7 @@
-#ifndef GROUP_H
-#define GROUP_H
+#pragma once
 #include "io.h"
 #include <stdlib.h>
+#include "./hash.h"
 
 int comp (const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
@@ -53,8 +53,8 @@ void queryGroup (Data *data, Ans *ans, int len, int *mids) {
 
     int* hashes = (int*)malloc(len * 2 * sizeof(int));
     for (int i=0; i<len; i++) {
-        hashes[i<<1] = 0; // hash(data->mails->from)
-        hashes[i<<1|1] = 0; // hash(data->mails->to)
+        hashes[i<<1] = hash1(data->mails->from);
+        hashes[i<<1|1] = hash1(data->mails->to);
     }
 
     qsort(hashes, len*2, sizeof(int), comp);
@@ -88,4 +88,9 @@ void queryGroup (Data *data, Ans *ans, int len, int *mids) {
     }
 
 }
-#endif
+
+
+TokenHash* mail_parser (Data* data) {
+
+
+}

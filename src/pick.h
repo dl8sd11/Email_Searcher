@@ -1,9 +1,7 @@
-#ifndef PICK_H
-#define PICK_H
+#pragma once
 #include "io.h"
 
 int pickProblem (Data *data) {
 
 }
 
-#endif
