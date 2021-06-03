@@ -12,6 +12,6 @@ typedef struct ans {
 } Ans;
 
 typedef struct token_hash {
-    int** hash;
-    int* len;
+    int** hash; // hash[i][j] repr jth token of ith mail
+    int* len;   // len[i] repr number of token of ith mail
 } TokenHash;
