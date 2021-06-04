@@ -3,8 +3,11 @@
 #include <stdlib.h>
 #include "./hash.h"
 
-int comp (const void *a, const void *b) {
-    return (*(int*)a - *(int*)b);
+int comp(const void *a, const void *b) {
+    int A = *(int *)a, B = *(int *)b;
+    if (A > B) return 1;
+    if (A < B) return -1;
+    return 0;
 }
 
 void unique (int* hashes, int len, int* resN) {

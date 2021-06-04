@@ -15,3 +15,7 @@ typedef struct token_hash {
     int** hash; // hash[i][j] repr jth token of ith mail
     int* len;   // len[i] repr number of token of ith mail
 } TokenHash;
+typedef struct pick_order{
+    int id;// ith query
+    int time; //time per reward
+}PickOrder;

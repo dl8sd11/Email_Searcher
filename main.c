@@ -13,12 +13,11 @@ int main(void) {
 	api.init(&data.n_mails, &data.n_queries, &data.mails, &data.queries);
     TokenHash* mail_hash = NULL;//mail_parser(&data);
 
-
-    int picked = 0;
+    PickOrder pick_order[data.n_queries];
+    int pickI = 0;
+    pickProblem(&pick_order, mail_hash, &data);
 	while (true) {
-        int pid = pickProblem(&data, &picked);
-        if (pid < 0) break;
-
+        int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
             api.answer(data.queries[pid].id, ans.array, ans.len);
