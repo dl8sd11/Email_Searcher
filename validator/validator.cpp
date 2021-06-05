@@ -16,19 +16,21 @@ int main(){
 
 	map<int, P> answers;
 
-	while(ans >> query_id >> reward >> hex >> digest)
+    int cnt =0 ;
+	while(ans >> dec >> query_id >> reward >> hex >> digest)
 		answers[query_id] = P(digest, reward);
 	
 	double result = 0.0;
 	int ans_cnt = 0;
 
-	while(cin >> query_id >> hex >> digest){
+	while(cin >> dec >> query_id >> hex >> digest){
 		if(answers.find(query_id) == answers.end())
 			continue;
 
 		if(answers[query_id].first == digest)
 			result += answers[query_id].second;
 		else
+            cout << "Error " << dec << query_id << endl;
 			result -= answers[query_id].second * 0.5;
 		
 		answers[query_id] = P(0, 0);

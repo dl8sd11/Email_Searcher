@@ -61,4 +61,16 @@ void pickProblem(PickOrder *pick_order, TokenHash* mail_hash, Data* data){
  
 }
 
-
+void pickOnly(PickOrder *order, Data *data, int tp) {
+    int queryN = data->n_queries;
+    int* res = (int*)malloc(queryN * sizeof(int));
+    int resN = 0;
+    for (int i=0; i<queryN; i++) {
+        if (data->queries[i].type == tp) res[resN++] = i;
+    }
+    for (int i=0; i<queryN; i++) {
+        if (data->queries[i].type != tp) res[resN++] = i;
+    }
+    for (int i=0; i<queryN; i++) order[i].id = res[i];
+    free(res);
+}
