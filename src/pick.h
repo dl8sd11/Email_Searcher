@@ -21,20 +21,23 @@ int pickComp(const void *a, const void *b){
     if (A.time < B.time) return -1;
     return 0;
 }
-void pickProblem(PickOrder **pick_order, TokenHash* mail_hash, Data* data){
+void pickProblem(PickOrder *pick_order, TokenHash* mail_hash, Data* data){
     int mailN = data->n_mails, queryN = data->n_queries;
     for (int i = 0; i < queryN; i++)
-        pick_order[i]->id = i;
+        pick_order[i].id = i;
     long long int prefix[mailN];
     long long int log_prefix[mailN];
     int sorted[mailN];
     compute_prefix(mailN, mail_hash->len, sorted, log_prefix, prefix);
     for (int i = 0; i < queryN; i++){
         if (data->queries[i].type == expression_match){
-            int expr_token = strlen((data->queries[i]).data.expression_match_data.expression) / 3;
-            pick_order[i]->time = expr_token * log_prefix[mailN-1] / (data->queries[i]).reward;
+            // (token of expression) * (log(token1)+log(token2)...)
+            int expr_token = strlen((data->queries[i]).data.expression_match_data.expression) / 3;// bongi's estimate
+            pick_order[i].time = expr_token * log_prefix[mailN-1] / (data->queries[i]).reward;
         }   
         if (data->queries[i].type == find_similar){
+            //min(tokenA, tokeni) * log(max(tokenA, tokeni))
+            // = (token1+...+tokenA-1) * log(tokenA) + tokenA * (log(tokenA+1)+...))
             int l = -1, r = mailN;
             int tokenI = (data->queries[i]).data.find_similar_data.mid;
             int token = mail_hash->len[tokenI];
@@ -45,14 +48,16 @@ void pickProblem(PickOrder **pick_order, TokenHash* mail_hash, Data* data){
             }
             int sortedI = r;
             int timecomp = prefix[sortedI-1]*log(token) + token*(log_prefix[mailN-1]-log_prefix[sortedI]);
-            pick_order[i]->time = timecomp / (data->queries[i]).reward;
+            pick_order[i].time = timecomp / (data->queries[i]).reward;
         }
         else{
+            // len * log(len)
             int len = (data->queries[i]).data.group_analyse_data.len;
-            pick_order[i]->time = len*log(len) / (data->queries[i]).reward;
+            pick_order[i].time = len*log(len) / (data->queries[i]).reward;
         }
     }
     qsort(pick_order, queryN, sizeof(PickOrder), pickComp);
+    // time short -> time long
  
 }
 

@@ -15,7 +15,7 @@ int main(void) {
 
     PickOrder pick_order[data.n_queries];
     int pickI = 0;
-    pickProblem(&pick_order, mail_hash, &data);
+    pickProblem(pick_order, mail_hash, &data);
 	while (true) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
