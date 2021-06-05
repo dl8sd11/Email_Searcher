@@ -101,9 +101,3 @@ void queryGroup (Data *data, Ans *ans, int len, int *mids) {
     free(hashes);
 
 }
-
-
-TokenHash* mail_parser (Data* data) {
-
-
-}

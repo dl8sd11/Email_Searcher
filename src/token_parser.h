@@ -1,8 +1,9 @@
 #pragma once
 #include "io.h"
-
-char** token_parser(char* content);
-int* token_parser_hash(char *content);
+#include "hash.h"
+#include "group.h"
+char** token_parser(char* content, int* mail_token_len);
+//int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,11 +16,11 @@ bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	return false;
 }
 
-char** token_parser(char* content) {
+char** token_parser(char* content, int* mail_token_len) {
 	int originContentIdx = 0;							//index of the content
 	int substringIdx = 0;								//index of each substring(reset to 0 when start another one)	
-	char** substringSet = malloc(sizeof(char*)*50);		//the set of all sliced token
-	char* substring = malloc(sizeof(char)*4);			//the first token
+	char** substringSet = (char**)malloc(sizeof(char*)*50);		//the set of all sliced token
+	char* substring = (char*)malloc(sizeof(char)*4);			//the first token
 	int substringMaxLen = 4;							//initalize the size of token
 	int substringSetIdx = 0;							//index of the token set
 	int substringSetSize = 50;							//initalize the size of token set
@@ -30,7 +31,7 @@ char** token_parser(char* content) {
 		if (cut) {										//if currently out of a token
 			if (valid_char(key)) {						//if valid character read
 				cut = false;							//turn cut off
-				substring = malloc(sizeof(char)*4);		//allocate a new space for token
+				substring = (char*)malloc(sizeof(char)*4);		//allocate a new space for token
 				substringIdx = 0;						//reset index inside token
 				substring[substringIdx] = key;			//put key into the stored token
 				substringIdx++;							//move to next index
@@ -46,7 +47,7 @@ char** token_parser(char* content) {
 					originContentIdx++;					//move to next character(key)
 				} else {								//if the token is almost full
 					substringMaxLen *= 2;				//resize the token 
-					substring = realloc(substring, sizeof(char)*substringMaxLen);	//allocate it into double quota
+					substring = (char*)realloc(substring, sizeof(char)*substringMaxLen);	//allocate it into double quota
 					substring[substringIdx] = key;		//fill in the key
 					substringIdx++;						//move to next index
 					originContentIdx++;					//move to next character(key)
@@ -64,7 +65,7 @@ char** token_parser(char* content) {
 				substringSetIdx++;						//move to the next index of token set
 				if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
 					substringSetSize *= 2;				//resize the token set
-					substring = realloc(substring, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
+					substringSet = (char**)realloc(substringSet, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
 				}
 				originContentIdx++;						//move to next character(key)
 			}
@@ -75,7 +76,29 @@ char** token_parser(char* content) {
 			substringSet[substringSetSize] = substring;	//put the token into the token set
 		}
 	}
-
+	*(mail_token_len) = substringSetIdx;
 	return substringSet;							//return the token set
 }
 
+TokenHash* mail_parser(Data* data) {
+	TokenHash* mail_hashes = (TokenHash*)malloc(sizeof(TokenHash));
+	mail_hashes->hash = (int**)malloc(sizeof(int*)*data->n_mails);
+	mail_hashes->len = (int*)malloc(sizeof(int)*data->n_mails);
+	int* mail_len = (int*) malloc(sizeof(int));
+	for (int i=0; i<data->n_mails; i++) {
+		char** tokens = token_parser(data->mails[i].content, mail_len);
+		int* token_hashes = (int*) malloc(sizeof(int)*(*(mail_len)));
+		for (int j=0; j<*(mail_len); j++) {
+			token_hashes[j] = hash1(tokens[j]);
+			free(tokens[j]);
+		}
+		qsort(token_hashes, *(mail_len), sizeof(int), comp);
+		int unq_len = 0;
+		unique(token_hashes, *(mail_len), &unq_len);
+		mail_hashes->hash[i] = token_hashes;
+		mail_hashes->len[i] = unq_len;
+		free(tokens);
+	}
+	free(mail_len);
+	return mail_hashes;
+}
