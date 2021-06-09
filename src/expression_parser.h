@@ -144,6 +144,9 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 		k += (bool)parts[j];
 	}
 	printf("(exprs) returns %d\n", k);
+	int ck = (bool)k;
+	if (reverse) ck = !ck;
+	k = (int)ck;
 	output[0] = i;
 	output[1] = k;
 	return output;
