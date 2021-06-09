@@ -17,6 +17,10 @@ bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	return false;
 }
 
+char lower (char c) {
+  if (c >= 'A' && c <= 'Z') return c - 'A' + 'a';
+  return c;
+}
 char** token_parser (char* content, int* mail_token_len) {
   int N = strlen(content);
   (*mail_token_len) = 0;
@@ -33,7 +37,9 @@ char** token_parser (char* content, int* mail_token_len) {
 
   int bid = 0;
   for (int i=0; i<N + 1; i++) {
-    if (i < N && valid_char(content[i])) buf[bid++] = content[i];
+    if (i < N && valid_char(content[i])) {
+      buf[bid++] = lower(content[i]);
+    } 
     if ((i == N || !valid_char(content[i])) && (i && valid_char(content[i-1]))) {
       char* cur = (char*)malloc(sizeof(char) * (bid + 1));
       buf[bid] = 0;

@@ -25,7 +25,7 @@ bool check(char* token, int* mail_hash, int mail_len) {
         else R = M;
     }
 
-    // printf("%d %d\n", token_hash, L != -1 && mail_hash[L] == token_hash);
+    printf("%s %d %d\n", token, token_hash, L != -1 && mail_hash[L] == token_hash);
     return L != -1 && mail_hash[L] == token_hash; 
 }
 
@@ -61,8 +61,6 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	bool reverse = false;
 	bool bv;
 	int i = stidx;
-	printf("im here\n");
-	printf("%s\n", input);
 	while (input[i] != 0) {
 		//printf("at: %c\n", input[i]);
 		if (inToken(input[i])) {
@@ -109,7 +107,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 				if (mult) parts[boolidx] = parts[boolidx] && bv;
 				else parts[boolidx] = bv;
 				if (isOperator(input[i])) {
-					printf("bv: %d opr: %c\n", bv, input[i]);
+					// printf("bv: %d opr: %c\n", bv, input[i]);
 					if (input[i] == '|') {
 						if (mult) {
 							boolidx++;
@@ -131,7 +129,6 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	}
 	if (tokenidx != 0) {
 		token[tokenidx] = '\0';
-		printf("token: %s\n", token);
 		if (reverse) bv = !check(token, mail_hash, mail_len);
 		else bv = check(token, mail_hash, mail_len);
 		if (mult) parts[boolidx] = parts[boolidx] && bv;
@@ -141,23 +138,21 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	for (int j=0; j<= boolidx; j++) {
 		k += (bool)parts[j];
 	}
-	printf("(exprs) returns %d\n", k);
+	// printf("(exprs) returns %d\n", k);
 	output[0] = i;
 	output[1] = k;
 	return output;
 }
 
 bool expression_parser(char* expression, int* mail_hash, int mail_len) {
-  /*
   puts("============");
   for (int i=0; i<mail_len; i++) {
     printf("%d ", mail_hash[i]);
   }
   puts("============");
-  */
 	int* parseResult = Parse(0, expression, mail_hash, mail_len);
 	bool ans = (bool)parseResult[1];
-  //printf("%s %d\n", expression, ans);
+  printf("%s %d\n", expression, ans);
 
 	free(parseResult);
 	return ans;
