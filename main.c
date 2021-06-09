@@ -19,10 +19,20 @@ int main(void) {
     pickOnly(pick_order, &data, expression_match);
 
     int cnt = 0;
+
+    int step = 0;
 	while (true) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
+            char *c = data.queries[pid].data.expression_match_data.expression;
+            if (pid != 911) continue;
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
+
+            puts("====");
+            for (int i=0; i<ans.len; i++) {
+              printf("%d ", ans.array[i]);
+            }
+            puts("====");
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == find_similar) {
             break;
