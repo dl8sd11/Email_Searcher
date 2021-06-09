@@ -91,6 +91,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 			i++;
 		} else if (isNot(input[i])) {
 			reverse = true;
+			i++;
 		} else if (isParenthese(input[i])) {
 			if (input[i] == '(') {
 				int* unlock;
