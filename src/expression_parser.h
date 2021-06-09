@@ -98,6 +98,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 			if (input[i] == '(') {
 				int* unlock;
 				unlock = Parse(i+1, input, mail_hash, mail_len);
+				printf("end recursion here\n");
 				i = unlock[0];
 				bv = (bool)unlock[1];
 				if (reverse) {
@@ -118,9 +119,13 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 					} else {
 						if (!mult)
 							mult = true;
-						}
 					}
 					i++;
+				}
+				if (input[i] == ')') {
+					i++;
+					break;
+				}
 			} else {
 				i++;
 				break;
@@ -138,7 +143,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	for (int j=0; j<= boolidx; j++) {
 		k += (bool)parts[j];
 	}
-	// printf("(exprs) returns %d\n", k);
+	printf("(exprs) returns %d\n", k);
 	output[0] = i;
 	output[1] = k;
 	return output;
