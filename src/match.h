@@ -6,6 +6,8 @@
 
 void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
     int n = data->n_mails;
+    static int array[10004];
+    ans->array = array;
 
     ans->len = 0;
     for (int i=0; i<n; i++) {
