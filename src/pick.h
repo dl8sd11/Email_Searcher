@@ -46,8 +46,11 @@ void pickProblem(PickOrder *pick_order, TokenHash* mail_hash, Data* data){
                 if (token <= sorted[m]) r = m;
                 else l = m;
             }
-            int sortedI = r;
-            int timecomp = prefix[sortedI-1]*log(token) + token*(log_prefix[mailN-1]-log_prefix[sortedI]);
+            int sortedI = r, timecomp;
+            if (sortedI == 0)
+                timecomp = token*(log_prefix[mailN-1]-log_prefix[sortedI]);
+            else
+                timecomp = prefix[sortedI-1]*log(token) + token*(log_prefix[mailN-1]-log_prefix[sortedI]);
             pick_order[i].time = timecomp / (data->queries[i]).reward;
         }
         else{
