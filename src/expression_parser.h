@@ -24,8 +24,7 @@ bool check(char* token, int* mail_hash, int mail_len) {
         if (mail_hash[M] <= token_hash) L = M;
         else R = M;
     }
-
-    return mail_hash[L] == token_hash; 
+    return L != -1 && mail_hash[L] == token_hash; 
 }
 
 bool inToken(char key) {

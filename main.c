@@ -22,7 +22,6 @@ int main(void) {
 	while (true) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
-          puts("hello ni hao");
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == find_similar) {
