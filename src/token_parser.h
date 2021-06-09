@@ -2,6 +2,7 @@
 #include "io.h"
 #include "hash.h"
 #include "group.h"
+#include <string.h>
 char** token_parser(char* content, int* mail_token_len);
 //int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
@@ -16,7 +17,36 @@ bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	return false;
 }
 
-char** token_parser(char* content, int* mail_token_len) {
+char** token_parser (char* content, int* mail_token_len) {
+  int N = strlen(content);
+  (*mail_token_len) = 0;
+  for (int i=0; i<N; i++) {
+    if (valid_char(content[i]) && (i == 0 || !valid_char(content[i-1]))) {
+      (*mail_token_len)++;
+    }
+  }
+
+	char** substringSet = (char**)malloc(sizeof(char*)*(*mail_token_len));		//the set of all sliced token
+  int substringIdx = 0;
+  char buf[100];
+
+
+  int bid = 0;
+  for (int i=0; i<N + 1; i++) {
+    if (i < N && valid_char(content[i])) buf[bid++] = content[i];
+    if ((i == N || !valid_char(content[i])) && (i && valid_char(content[i-1]))) {
+      char* cur = (char*)malloc(sizeof(char) * (bid + 1));
+      buf[bid] = 0;
+      strcpy(cur, buf);
+      substringSet[substringIdx++] = cur;
+      bid = 0;
+    }
+  }
+
+  return substringSet;
+}
+
+char** token_parser_clone(char* content, int* mail_token_len) {
 	int originContentIdx = 0;							//index of the content
 	int substringIdx = 0;								//index of each substring(reset to 0 when start another one)	
 	char** substringSet = (char**)malloc(sizeof(char*)*50);		//the set of all sliced token
@@ -61,6 +91,9 @@ char** token_parser(char* content, int* mail_token_len) {
 				substring[substringIdx] = '\0';			//put end of string in the token
 				substringMaxLen = 4;					//reset the token size
 				substringIdx = 0;						//reset the token index
+
+
+        fprintf(stderr, "put %p\n", substring);
 				substringSet[substringSetIdx] = substring;	//put the token into the token set
 				substringSetIdx++;						//move to the next index of token set
 				if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
@@ -73,8 +106,14 @@ char** token_parser(char* content, int* mail_token_len) {
 
 		if (!cut) {										//if content end with a valid character (still in a token)
 			substring[substringIdx] = '\0';				//put end of string in the token (cut the token)
-			substringSet[substringSetSize] = substring;	//put the token into the token set
+      fprintf(stderr, "put %p\n", substring);
+			substringSet[substringIdx] = substring;	//put the token into the token set
 		}
+    substringSetIdx++;						//move to the next index of token set
+    if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
+      substringSetSize *= 2;				//resize the token set
+      substringSet = (char**)realloc(substringSet, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
+    }
 	}
 	*(mail_token_len) = substringSetIdx;
 	return substringSet;							//return the token set
@@ -86,6 +125,7 @@ TokenHash* mail_parser(Data* data) {
 	mail_hashes->len = (int*)malloc(sizeof(int)*data->n_mails);
 	int* mail_len = (int*) malloc(sizeof(int));
 	for (int i=0; i<data->n_mails; i++) {
+    char* c = data->mails[i].content;
 		char** tokens = token_parser(data->mails[i].content, mail_len);
 		int* token_hashes = (int*) malloc(sizeof(int)*(*(mail_len)));
 		for (int j=0; j<*(mail_len); j++) {

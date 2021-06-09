@@ -144,5 +144,6 @@ bool expression_parser(char* expression, int* mail_hash, int mail_len) {
 	int* parseResult = Parse(0, expression, mail_hash, mail_len);
 	bool ans = (bool)parseResult[1];
 	free(parseResult);
+  puts("done");
 	return ans;
 }
