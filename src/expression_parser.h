@@ -25,7 +25,7 @@ bool check(char* token, int* mail_hash, int mail_len) {
         else R = M;
     }
 
-    printf("%s %d %d\n", token, token_hash, L != -1 && mail_hash[L] == token_hash);
+    //printf("%s %d %d\n", token, token_hash, L != -1 && mail_hash[L] == token_hash);
     return L != -1 && mail_hash[L] == token_hash; 
 }
 
@@ -98,7 +98,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 			if (input[i] == '(') {
 				int* unlock;
 				unlock = Parse(i+1, input, mail_hash, mail_len);
-				printf("end recursion here\n");
+				//printf("end recursion here\n");
 				i = unlock[0];
 				bv = (bool)unlock[1];
 				if (reverse) {
@@ -143,21 +143,23 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	for (int j=0; j<= boolidx; j++) {
 		k += (bool)parts[j];
 	}
-	printf("(exprs) returns %d\n", k);
+	//printf("(exprs) returns %d\n", k);
 	output[0] = i;
 	output[1] = k;
 	return output;
 }
 
 bool expression_parser(char* expression, int* mail_hash, int mail_len) {
+  /*
   puts("============");
   for (int i=0; i<mail_len; i++) {
     printf("%d ", mail_hash[i]);
   }
   puts("============");
+  */
 	int* parseResult = Parse(0, expression, mail_hash, mail_len);
 	bool ans = (bool)parseResult[1];
-  printf("%s %d\n", expression, ans);
+//  printf("%s %d\n", expression, ans);
 
 	free(parseResult);
 	return ans;

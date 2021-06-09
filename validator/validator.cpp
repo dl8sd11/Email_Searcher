@@ -29,7 +29,7 @@ int main(){
 
 		if(answers[query_id].first == digest)
         {
-            cout << "Accepted " << dec << query_id << endl;
+            //cout << "Accepted " << dec << query_id << endl;
 			result += answers[query_id].second;
 
         }

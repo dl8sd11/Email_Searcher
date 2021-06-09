@@ -18,7 +18,6 @@ void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
     }
 
     for (int i=0; i<n; i++) {
-//      if (data->mails[i].id != 8559) continue;
         if (expression_parser(expr, mail_hash->hash[i], mail_hash->len[i])) {
             ans->array[ans->len++] = data->mails[i].id;
         }
