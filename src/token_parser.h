@@ -93,7 +93,7 @@ char** token_parser_clone(char* content, int* mail_token_len) {
 				substringIdx = 0;						//reset the token index
 
 
-        fprintf(stderr, "put %p\n", substring);
+        // fprintf(stderr, "put %p\n", substring);
 				substringSet[substringSetIdx] = substring;	//put the token into the token set
 				substringSetIdx++;						//move to the next index of token set
 				if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
@@ -106,7 +106,7 @@ char** token_parser_clone(char* content, int* mail_token_len) {
 
 		if (!cut) {										//if content end with a valid character (still in a token)
 			substring[substringIdx] = '\0';				//put end of string in the token (cut the token)
-      fprintf(stderr, "put %p\n", substring);
+      // fprintf(stderr, "put %p\n", substring);
 			substringSet[substringIdx] = substring;	//put the token into the token set
 		}
     substringSetIdx++;						//move to the next index of token set

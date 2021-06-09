@@ -28,10 +28,16 @@ int main(){
 			continue;
 
 		if(answers[query_id].first == digest)
+        {
+            cout << "Accepted " << dec << query_id << endl;
 			result += answers[query_id].second;
-		else
+
+        }
+		else {
             cout << "Error " << dec << query_id << endl;
 			result -= answers[query_id].second * 0.5;
+
+        }
 		
 		answers[query_id] = P(0, 0);
 		ans_cnt ++;

@@ -24,6 +24,8 @@ bool check(char* token, int* mail_hash, int mail_len) {
         if (mail_hash[M] <= token_hash) L = M;
         else R = M;
     }
+
+    // printf("%d %d\n", token_hash, L != -1 && mail_hash[L] == token_hash);
     return L != -1 && mail_hash[L] == token_hash; 
 }
 
@@ -141,9 +143,17 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 }
 
 bool expression_parser(char* expression, int* mail_hash, int mail_len) {
+  /*
+  puts("============");
+  for (int i=0; i<mail_len; i++) {
+    printf("%d ", mail_hash[i]);
+  }
+  puts("============");
+  */
 	int* parseResult = Parse(0, expression, mail_hash, mail_len);
 	bool ans = (bool)parseResult[1];
+  //printf("%s %d\n", expression, ans);
+
 	free(parseResult);
-  puts("done");
 	return ans;
 }
