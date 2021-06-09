@@ -59,16 +59,19 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	int tokenidx = 0;
 	bool mult = false;
 	bool reverse = false;
+	bool bv;
 	int i = stidx;
+	printf("im here\n");
+	printf("%s\n", input);
 	while (input[i] != 0) {
+		//printf("at: %c\n", input[i]);
 		if (inToken(input[i])) {
+			//printf("in token\n");
 			token[tokenidx] = input[i];
 			tokenidx++;
 			i++;
 		} else if (isOperator(input[i])) {
-			token[tokenidx] = '\0';
-			tokenidx = 0;
-			bool bv = check(token, mail_hash, mail_len);
+			//printf("bv : %d\n", bv);
 			if (reverse) {
 				bv = !bv;
 				reverse = false;
@@ -98,7 +101,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 				int* unlock;
 				unlock = Parse(i+1, input, mail_hash, mail_len);
 				i = unlock[0];
-				bool bv = (bool)unlock[1];
+				bv = (bool)unlock[1];
 				if (reverse) {
 					bv = !bv;
 					reverse = false;
@@ -106,6 +109,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 				if (mult) parts[boolidx] = parts[boolidx] && bv;
 				else parts[boolidx] = bv;
 				if (isOperator(input[i])) {
+					printf("bv: %d opr: %c\n", bv, input[i]);
 					if (input[i] == '|') {
 						if (mult) {
 							boolidx++;
@@ -127,7 +131,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	}
 	if (tokenidx != 0) {
 		token[tokenidx] = '\0';
-		bool bv;
+		printf("token: %s\n", token);
 		if (reverse) bv = !check(token, mail_hash, mail_len);
 		else bv = check(token, mail_hash, mail_len);
 		if (mult) parts[boolidx] = parts[boolidx] && bv;
@@ -137,6 +141,7 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	for (int j=0; j<= boolidx; j++) {
 		k += (bool)parts[j];
 	}
+	printf("(exprs) returns %d\n", k);
 	output[0] = i;
 	output[1] = k;
 	return output;
