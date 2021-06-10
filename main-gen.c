@@ -146,10 +146,6 @@ void queryGroup (Data *data, Ans *ans, int len, int *mids) {
 
 }
 
-TokenHash* mail_parser (Data* data) {
-
-}
-
 void compute_prefix(int n_mails, int* mail_token, int* sorted, long long int* log_prefix, long long int* prefix){
     for (int i = 0; i < n_mails; i++)
         sorted[i] = mail_token[i];
@@ -193,8 +189,11 @@ void pickProblem(PickOrder *pick_order, TokenHash* mail_hash, Data* data){
                 if (token <= sorted[m]) r = m;
                 else l = m;
             }
-            int sortedI = r;
-            int timecomp = prefix[sortedI-1]*log(token) + token*(log_prefix[mailN-1]-log_prefix[sortedI]);
+            int sortedI = r, timecomp;
+            if (sortedI == 0)
+                timecomp = token*(log_prefix[mailN-1]-log_prefix[sortedI]);
+            else
+                timecomp = prefix[sortedI-1]*log(token) + token*(log_prefix[mailN-1]-log_prefix[sortedI]);
             pick_order[i].time = timecomp / (data->queries[i]).reward;
         }
         else{
@@ -246,7 +245,8 @@ bool check(char* token, int* mail_hash, int mail_len) {
         else R = M;
     }
 
-    return mail_hash[L] == token_hash; 
+    //printf("%s %d %d\n", token, token_hash, L != -1 && mail_hash[L] == token_hash);
+    return L != -1 && mail_hash[L] == token_hash; 
 }
 
 bool inToken(char key) {
@@ -272,72 +272,80 @@ bool isOperator(char key) {
 }
 
 int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
-	int* output = malloc(sizeof(int)*2);
+	int* output = (int*)malloc(sizeof(int)*2);
 	bool parts[1000];
 	int boolidx = 0;
 	char token[100];
 	int tokenidx = 0;
-	bool and = false;
-	bool not = false;
+	bool mult = false;
+	bool reverse = false;
+	bool bv;
 	int i = stidx;
 	while (input[i] != 0) {
+		//printf("at: %c\n", input[i]);
 		if (inToken(input[i])) {
+			//printf("in token\n");
 			token[tokenidx] = input[i];
 			tokenidx++;
 			i++;
 		} else if (isOperator(input[i])) {
-			token[tokenidx] = '\0';
-			tokenidx = 0;
-			bool bv = check(token, mail_hash, mail_len);
-			if (not) {
+			//printf("bv : %d\n", bv);
+			if (reverse) {
 				bv = !bv;
-				not = false;
+				reverse = false;
 			}
 			if (input[i] == '|') {
-				if (and) {
+				if (mult) {
 					parts[boolidx] = parts[boolidx] && bv;
-					and = false;
+					mult = false;
 					boolidx++;
 				} else {
 					parts[boolidx] = bv;
 					boolidx++;
 				}
 			} else {
-				if (and) parts[boolidx] = parts[boolidx] && bv;
+				if (mult) parts[boolidx] = parts[boolidx] && bv;
 				else {
 					parts[boolidx] = bv;
-					and = true;
+					mult = true;
 				}
 			}
 			i++;
 		} else if (isNot(input[i])) {
-			not = true;
+			reverse = true;
+			i++;
 		} else if (isParenthese(input[i])) {
 			if (input[i] == '(') {
 				int* unlock;
 				unlock = Parse(i+1, input, mail_hash, mail_len);
+				//printf("end recursion here\n");
 				i = unlock[0];
-				bool bv = (bool)unlock[1];
-				if (not) {
+				bv = (bool)unlock[1];
+				if (reverse) {
 					bv = !bv;
-					not = false;
+					reverse = false;
 				}
-				if (and) parts[boolidx] = parts[boolidx] && bv;
+				if (mult) parts[boolidx] = parts[boolidx] && bv;
 				else parts[boolidx] = bv;
 				if (isOperator(input[i])) {
+					// printf("bv: %d opr: %c\n", bv, input[i]);
 					if (input[i] == '|') {
-						if (and) {
+						if (mult) {
 							boolidx++;
-							and = false;
+							mult = false;
 						} else {
 							boolidx++;
 						}
 					} else {
-						if (!and)
-							and = true;
-						}
+						if (!mult)
+							mult = true;
 					}
 					i++;
+				}
+				if (input[i] == ')') {
+					i++;
+					break;
+				}
 			} else {
 				i++;
 				break;
@@ -346,44 +354,40 @@ int* Parse(int stidx, char* input, int* mail_hash, int mail_len) {
 	}
 	if (tokenidx != 0) {
 		token[tokenidx] = '\0';
-		bool bv;
-		if (not) bv = !check(token, mail_hash, mail_len);
+		if (reverse) bv = !check(token, mail_hash, mail_len);
 		else bv = check(token, mail_hash, mail_len);
-		if (and) parts[boolidx] = parts[boolidx] && bv;
+		if (mult) parts[boolidx] = parts[boolidx] && bv;
 		else parts[boolidx] = bv;
 	}
 	int k = 0;
 	for (int j=0; j<= boolidx; j++) {
 		k += (bool)parts[j];
 	}
+	//printf("(exprs) returns %d\n", k);
 	output[0] = i;
 	output[1] = k;
 	return output;
 }
 
 bool expression_parser(char* expression, int* mail_hash, int mail_len) {
+  /*
+  puts("============");
+  for (int i=0; i<mail_len; i++) {
+    printf("%d ", mail_hash[i]);
+  }
+  puts("============");
+  */
 	int* parseResult = Parse(0, expression, mail_hash, mail_len);
-	return (bool)parseResult[1];
+	bool ans = (bool)parseResult[1];
+//  printf("%s %d\n", expression, ans);
+
+	free(parseResult);
+	return ans;
 }
 
-void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
-    int n = data->n_mails;
-
-    ans->len = 0;
-    for (int i=0; i<n; i++) {
-        if (expression_parser(expr, mail_hash->hash[i], mail_hash->len[i])) {
-            ans->array[ans->len++] = data->mails[i].id;
-        }
-    }
-    qsort(ans->array, ans->len, sizeof(int), comp);
-}
-
-void querySimilar (Data *data, int mid, double threshold, Ans *ans) {
-
-}
-
-char** token_parser(char* content);
-int* token_parser_hash(char *content);
+#include <string.h>
+char** token_parser(char* content, int* mail_token_len);
+//int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
 #include <stdio.h>
 #include <stdlib.h>
@@ -396,11 +400,45 @@ bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	return false;
 }
 
-char** token_parser(char* content) {
+char lower (char c) {
+  if (c >= 'A' && c <= 'Z') return c - 'A' + 'a';
+  return c;
+}
+char** token_parser (char* content, int* mail_token_len) {
+  int N = strlen(content);
+  (*mail_token_len) = 0;
+  for (int i=0; i<N; i++) {
+    if (valid_char(content[i]) && (i == 0 || !valid_char(content[i-1]))) {
+      (*mail_token_len)++;
+    }
+  }
+
+	char** substringSet = (char**)malloc(sizeof(char*)*(*mail_token_len));		//the set of all sliced token
+  int substringIdx = 0;
+  char buf[100];
+
+  int bid = 0;
+  for (int i=0; i<N + 1; i++) {
+    if (i < N && valid_char(content[i])) {
+      buf[bid++] = lower(content[i]);
+    } 
+    if ((i == N || !valid_char(content[i])) && (i && valid_char(content[i-1]))) {
+      char* cur = (char*)malloc(sizeof(char) * (bid + 1));
+      buf[bid] = 0;
+      strcpy(cur, buf);
+      substringSet[substringIdx++] = cur;
+      bid = 0;
+    }
+  }
+
+  return substringSet;
+}
+
+char** token_parser_clone(char* content, int* mail_token_len) {
 	int originContentIdx = 0;							//index of the content
 	int substringIdx = 0;								//index of each substring(reset to 0 when start another one)	
-	char** substringSet = malloc(sizeof(char*)*50);		//the set of all sliced token
-	char* substring = malloc(sizeof(char)*4);			//the first token
+	char** substringSet = (char**)malloc(sizeof(char*)*50);		//the set of all sliced token
+	char* substring = (char*)malloc(sizeof(char)*4);			//the first token
 	int substringMaxLen = 4;							//initalize the size of token
 	int substringSetIdx = 0;							//index of the token set
 	int substringSetSize = 50;							//initalize the size of token set
@@ -411,7 +449,7 @@ char** token_parser(char* content) {
 		if (cut) {										//if currently out of a token
 			if (valid_char(key)) {						//if valid character read
 				cut = false;							//turn cut off
-				substring = malloc(sizeof(char)*4);		//allocate a new space for token
+				substring = (char*)malloc(sizeof(char)*4);		//allocate a new space for token
 				substringIdx = 0;						//reset index inside token
 				substring[substringIdx] = key;			//put key into the stored token
 				substringIdx++;							//move to next index
@@ -427,7 +465,7 @@ char** token_parser(char* content) {
 					originContentIdx++;					//move to next character(key)
 				} else {								//if the token is almost full
 					substringMaxLen *= 2;				//resize the token 
-					substring = realloc(substring, sizeof(char)*substringMaxLen);	//allocate it into double quota
+					substring = (char*)realloc(substring, sizeof(char)*substringMaxLen);	//allocate it into double quota
 					substring[substringIdx] = key;		//fill in the key
 					substringIdx++;						//move to next index
 					originContentIdx++;					//move to next character(key)
@@ -441,11 +479,13 @@ char** token_parser(char* content) {
 				substring[substringIdx] = '\0';			//put end of string in the token
 				substringMaxLen = 4;					//reset the token size
 				substringIdx = 0;						//reset the token index
+
+        // fprintf(stderr, "put %p\n", substring);
 				substringSet[substringSetIdx] = substring;	//put the token into the token set
 				substringSetIdx++;						//move to the next index of token set
 				if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
 					substringSetSize *= 2;				//resize the token set
-					substring = realloc(substring, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
+					substringSet = (char**)realloc(substringSet, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
 				}
 				originContentIdx++;						//move to next character(key)
 			}
@@ -453,35 +493,101 @@ char** token_parser(char* content) {
 
 		if (!cut) {										//if content end with a valid character (still in a token)
 			substring[substringIdx] = '\0';				//put end of string in the token (cut the token)
-			substringSet[substringSetSize] = substring;	//put the token into the token set
+      // fprintf(stderr, "put %p\n", substring);
+			substringSet[substringIdx] = substring;	//put the token into the token set
 		}
+    substringSetIdx++;						//move to the next index of token set
+    if (!(substringSetIdx < substringSetSize-1)) {	//if the token set is almost full
+      substringSetSize *= 2;				//resize the token set
+      substringSet = (char**)realloc(substringSet, sizeof(char*)*substringSetSize);	//allocate the token set into double quota
+    }
 	}
-
+	*(mail_token_len) = substringSetIdx;
 	return substringSet;							//return the token set
+}
+
+TokenHash* mail_parser(Data* data) {
+	TokenHash* mail_hashes = (TokenHash*)malloc(sizeof(TokenHash));
+	mail_hashes->hash = (int**)malloc(sizeof(int*)*data->n_mails);
+	mail_hashes->len = (int*)malloc(sizeof(int)*data->n_mails);
+	int* mail_len = (int*) malloc(sizeof(int));
+	for (int i=0; i<data->n_mails; i++) {
+    char* c = data->mails[i].content;
+		char** tokens = token_parser(data->mails[i].content, mail_len);
+		int* token_hashes = (int*) malloc(sizeof(int)*(*(mail_len)));
+		for (int j=0; j<*(mail_len); j++) {
+			token_hashes[j] = hash1(tokens[j]);
+			free(tokens[j]);
+		}
+		qsort(token_hashes, *(mail_len), sizeof(int), comp);
+		int unq_len = 0;
+		unique(token_hashes, *(mail_len), &unq_len);
+		mail_hashes->hash[i] = token_hashes;
+		mail_hashes->len[i] = unq_len;
+		free(tokens);
+	}
+	free(mail_len);
+	return mail_hashes;
+}
+
+void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
+    int n = data->n_mails;
+    static int array[10004];
+    ans->array = array;
+
+    ans->len = 0;
+
+    int m = strlen(expr);
+    for (int i=0; i<m; i++) {
+      expr[i] = lower(expr[i]);
+    }
+
+    for (int i=0; i<n; i++) {
+        if (expression_parser(expr, mail_hash->hash[i], mail_hash->len[i])) {
+            ans->array[ans->len++] = data->mails[i].id;
+        }
+    }
+    qsort(ans->array, ans->len, sizeof(int), comp);
+}
+
+void querySimilar (Data *data, int mid, double threshold, Ans *ans) {
+
 }
 
 int main(void) {
 	Data data;
     Ans ans;
 	api.init(&data.n_mails, &data.n_queries, &data.mails, &data.queries);
-    TokenHash* mail_hash = NULL;//mail_parser(&data);
+    TokenHash* mail_hash = mail_parser(&data);
 
     PickOrder pick_order[data.n_queries];
     int pickI = 0;
-    pickOnly(pick_order, &data, group_analyse);
+//    pickProblem(pick_order, mail_hash, &data);
+     pickOnly(pick_order, &data, expression_match);
 
     int cnt = 0;
+
+    int step = 0;
 	while (true) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
-            break;
+            char *c = data.queries[pid].data.expression_match_data.expression;
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
+
+            /*
+            puts("====");
+            for (int i=0; i<ans.len; i++) {
+              printf("%d ", ans.array[i]);
+            }
+            puts("====");
+            */
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == find_similar) {
-            break;
+          break;
             querySimilar(&data, data.queries[pid].data.find_similar_data.mid, data.queries[pid].data.find_similar_data.threshold, &ans);
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == group_analyse) {
+          break;
             int len = data.queries[pid].data.group_analyse_data.len; 
             int* mids = data.queries[pid].data.group_analyse_data.mids; 
 //            if (data.queries[pid].id != 2442) continue;
