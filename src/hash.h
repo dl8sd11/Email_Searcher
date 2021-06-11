@@ -18,3 +18,9 @@ int hash2(char *str){// djb2
     }
     return (int)hash;
 }
+
+long long hash3 (char *str) {
+  unsigned int h1 = hash1(str);
+  unsigned int h2 = hash2(str);
+  return ((unsigned long long)(h1) << h1) | h2;
+}

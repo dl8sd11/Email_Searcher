@@ -8,47 +8,29 @@
 #include "src/similar.h"
 #include "src/token_parser.h"
 
+int mailCompID (const void *a, const void *b) {
+  return ((mail*)a)->id - ((mail*)b)->id;
+}
+
+void sortMail (mail* mails, int sz) {
+  qsort(mails, sz, sizeof(mail), mailCompID);
+}
+
 int main(void) {
 	Data data;
-    Ans ans;
+  Ans ans;
 	api.init(&data.n_mails, &data.n_queries, &data.mails, &data.queries);
-    TokenHash* mail_hash = mail_parser(&data);
+  sortMail(data.mails, data.n_mails);
+  TokenHash* mail_hash = mail_parser(&data);
 
-    PickOrder pick_order[data.n_queries];
-    int pickI = 0;
-//    pickProblem(pick_order, mail_hash, &data);
-     pickOnly(pick_order, &data, group_analyse);
+  PickOrder pick_order[data.n_queries];
+  SimilarGroup *similarGroups = pickSimilar(&data);
 
-    int cnt = 0;
+  int n_mails = data.n_mails;
+  for (int i=0; i<n_mails; i++) {
+    if (similarGroups[i].qSz == 0) continue;
+    querySimilar(&data, &similarGroups[i], mail_hash);
+  }
 
-    int step = 0;
-	while (true) {
-        int pid = pick_order[pickI++].id;
-        if (data.queries[pid].type == expression_match) {
-          break;
-            char *c = data.queries[pid].data.expression_match_data.expression;
-            queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
-
-            /*
-            puts("====");
-            for (int i=0; i<ans.len; i++) {
-              printf("%d ", ans.array[i]);
-            }
-            puts("====");
-            */
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-        } else if (data.queries[pid].type == find_similar) {
-          break;
-            querySimilar(&data, data.queries[pid].data.find_similar_data.mid, data.queries[pid].data.find_similar_data.threshold, &ans);
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-        } else if (data.queries[pid].type == group_analyse) {
-            int len = data.queries[pid].data.group_analyse_data.len; 
-            int* mids = data.queries[pid].data.group_analyse_data.mids; 
-//            if (data.queries[pid].id != 2442) continue;
-            queryGroup(&data, &ans, len, mids);
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-            free(ans.array);
-        } 
-	}
-    return 0;
+  return 0;
 }

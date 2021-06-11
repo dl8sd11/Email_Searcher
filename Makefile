@@ -1,5 +1,5 @@
 main: main.c api.h src/*.h
-	gcc main.c -o main -O3 -std=c11 -w -lm
+	gcc main.c -o main -O3 -std=c11 -w -lm -g
 
 main-gen: main.c api.h src/*.h
 	gcc main-gen.c -o main-gen -O3 -std=c11 -w -lm

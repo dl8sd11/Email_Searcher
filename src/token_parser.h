@@ -138,11 +138,13 @@ TokenHash* mail_parser(Data* data) {
 			token_hashes[j] = hash1(tokens[j]);
 			free(tokens[j]);
 		}
+
 		qsort(token_hashes, *(mail_len), sizeof(int), comp);
 		int unq_len = 0;
 		unique(token_hashes, *(mail_len), &unq_len);
 		mail_hashes->hash[i] = token_hashes;
 		mail_hashes->len[i] = unq_len;
+
 		free(tokens);
 	}
 	free(mail_len);
