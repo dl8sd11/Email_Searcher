@@ -7,6 +7,7 @@
 #include "src/group.h"
 #include "src/similar.h"
 #include "src/token_parser.h"
+#define HASH_TYPE long long
 
 int mailCompID (const void *a, const void *b) {
   return ((mail*)a)->id - ((mail*)b)->id;

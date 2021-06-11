@@ -89,10 +89,14 @@ void initGroup (SimilarGroup* group, int mid) {
 
 void push_back (int **array, int item, int* cap, int *sz) {
   if (*sz == *cap) {
-    *cap *= 2;
-    *array = (int*)realloc(*array, *cap);
+    (*cap) *= 2;
+    *array = (int*)realloc(*array, (*cap)*sizeof(int));
   }
   (*array)[(*sz)++] = item;
+}
+
+int groupComp (const void *a, const void *b) {
+  return ((SimilarGroup*)a)->score > ((SimilarGroup*)b)->score ? -1 : 1;
 }
 
 SimilarGroup* pickSimilar (Data *data) {
@@ -111,5 +115,7 @@ SimilarGroup* pickSimilar (Data *data) {
     push_back(&groups[mid].qIds, qid, &groups[mid].cap, &groups[mid].qSz);
     groups[mid].score += data->queries[i].reward;
   }
+
+  qsort(groups, n_mails, sizeof(SimilarGroup), groupComp);
   return groups;
 }

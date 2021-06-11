@@ -3,6 +3,7 @@
 #include <assert.h>
 
 // pppppp
+#define HASH_TYPE long long
 typedef struct data {
     int n_mails, n_queries;
     mail *mails;
@@ -15,13 +16,19 @@ typedef struct ans {
 } Ans;
 
 typedef struct token_hash {
-    int** hash; // hash[i][j] repr jth token of ith mail
+    HASH_TYPE** hash; // hash[i][j] repr jth token of ith mail
     int* len;   // len[i] repr number of token of ith mail
 } TokenHash;
 typedef struct pick_order{
     int id;// ith query
     int time; //time per reward
 }PickOrder;
+
+typedef struct similar_group {
+  int mId, qSz;
+  double score;
+  int *qIds, cap;
+} SimilarGroup;
 
 #include <math.h>
 
@@ -45,6 +52,30 @@ int hash2(char *str){// djb2
         hash = ((hash << 5) + hash) + (*str++);
     }
     return (int)hash;
+}
+
+#define HASH_TYPE unsigned long long
+const HASH_TYPE mod = (1ull<<61) - 1;
+HASH_TYPE modmul(HASH_TYPE a, HASH_TYPE b){
+	HASH_TYPE l1 = (int)a, h1 = a>>32, l2 = (int)b, h2 = b>>32;
+	HASH_TYPE l = l1*l2, m = l1*h2 + l2*h1, h = h1*h2;
+	HASH_TYPE ret = (l&mod) + (l>>61) + (h << 3) + (m >> 29) + (m << 35 >> 3) + 1;
+	ret = (ret & mod) + (ret>>61);
+	ret = (ret & mod) + (ret>>61);
+	return ret-1;
+}
+
+HASH_TYPE hash3 (char *str) {
+  HASH_TYPE base = 1;
+  const HASH_TYPE c = 880301;
+  HASH_TYPE sum = 0;
+  while (*str) {
+    base = modmul(base, c);
+    HASH_TYPE cur = modmul(base, *str);
+    sum = sum + cur >= mod ? sum + cur - mod : sum + cur;
+    str++;
+  }
+  return sum;
 }
 
 int comp(const void *a, const void *b) {
@@ -146,6 +177,8 @@ void queryGroup (Data *data, Ans *ans, int len, int *mids) {
 
 }
 
+#include <string.h>
+
 void compute_prefix(int n_mails, int* mail_token, int* sorted, long long int* log_prefix, long long int* prefix){
     for (int i = 0; i < n_mails; i++)
         sorted[i] = mail_token[i];
@@ -219,6 +252,47 @@ void pickOnly(PickOrder *order, Data *data, int tp) {
     }
     for (int i=0; i<queryN; i++) order[i].id = res[i];
     free(res);
+}
+
+void initGroup (SimilarGroup* group, int mid) {
+  group->mId = mid;
+  group->qSz = 0;
+  group->qIds = (int*)malloc(sizeof(int) * 16);
+  group->cap = 16;
+  group->score = 0;
+}
+
+void push_back (int **array, int item, int* cap, int *sz) {
+  if (*sz == *cap) {
+    (*cap) *= 2;
+    *array = (int*)realloc(*array, (*cap)*sizeof(int));
+  }
+  (*array)[(*sz)++] = item;
+}
+
+int groupComp (const void *a, const void *b) {
+  return ((SimilarGroup*)a)->score > ((SimilarGroup*)b)->score ? -1 : 1;
+}
+
+SimilarGroup* pickSimilar (Data *data) {
+  int n_mails = data->n_mails, n_queries = data->n_queries;
+  SimilarGroup* groups = (SimilarGroup*)malloc(sizeof(SimilarGroup) * n_mails);
+
+  for (int i=0; i<n_mails; i++) {
+    initGroup(groups + i, i);
+  }
+
+  for (int i=0; i<n_queries; i++) {
+    if (data->queries[i].type != find_similar) continue;
+    int mid = data->queries[i].data.find_similar_data.mid;
+    int qid = data->queries[i].id;
+
+    push_back(&groups[mid].qIds, qid, &groups[mid].cap, &groups[mid].qSz);
+    groups[mid].score += data->queries[i].reward;
+  }
+
+  qsort(groups, n_mails, sizeof(SimilarGroup), groupComp);
+  return groups;
 }
 
 #include <stdio.h>
@@ -389,12 +463,30 @@ bool expression_parser(char* expression, int* mail_hash, int mail_len) {
 }
 
 #include <string.h>
-char** token_parser(char* content, int* mail_token_len);
+#define HASH_TYPE long long
+HASH_TYPE* token_parser(char* content, int* mail_token_len);
 //int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+#define HASH_TYPE long long
+int compHash(const void *a, const void *b) {
+    HASH_TYPE A = *(HASH_TYPE *)a, B = *(HASH_TYPE *)b;
+    if (A > B) return 1;
+    if (A < B) return -1;
+    return 0;
+}
+
+void uniqueHash (HASH_TYPE* hashes, int len, int* resN) {
+    for (int i=0, st=0; i<len; i++) {
+        if (i == len-1 || hashes[i+1] != hashes[st]) {
+            hashes[(*resN)++] = hashes[st];
+            st = i + 1;
+        }
+    }
+}
 
 bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	if (k > 47 && k < 58) return true;
@@ -407,7 +499,7 @@ char lower (char c) {
   if (c >= 'A' && c <= 'Z') return c - 'A' + 'a';
   return c;
 }
-char** token_parser (char* content, int* mail_token_len) {
+HASH_TYPE* token_parser (char* content, int* mail_token_len) {
   int N = strlen(content);
   (*mail_token_len) = 0;
   for (int i=0; i<N; i++) {
@@ -416,7 +508,7 @@ char** token_parser (char* content, int* mail_token_len) {
     }
   }
 
-	char** substringSet = (char**)malloc(sizeof(char*)*(*mail_token_len));		//the set of all sliced token
+	HASH_TYPE* substringSet = (HASH_TYPE*)malloc(sizeof(HASH_TYPE*)*(*mail_token_len));		//the set of all sliced token
   int substringIdx = 0;
   char buf[100];
 
@@ -429,7 +521,7 @@ char** token_parser (char* content, int* mail_token_len) {
       char* cur = (char*)malloc(sizeof(char) * (bid + 1));
       buf[bid] = 0;
       strcpy(cur, buf);
-      substringSet[substringIdx++] = cur;
+      substringSet[substringIdx++] = hash3(cur);
       bid = 0;
     }
   }
@@ -511,23 +603,23 @@ char** token_parser_clone(char* content, int* mail_token_len) {
 
 TokenHash* mail_parser(Data* data) {
 	TokenHash* mail_hashes = (TokenHash*)malloc(sizeof(TokenHash));
-	mail_hashes->hash = (int**)malloc(sizeof(int*)*data->n_mails);
+	mail_hashes->hash = (HASH_TYPE**)malloc(sizeof(HASH_TYPE*)*data->n_mails);
 	mail_hashes->len = (int*)malloc(sizeof(int)*data->n_mails);
 	int* mail_len = (int*) malloc(sizeof(int));
+  char c[100305];
 	for (int i=0; i<data->n_mails; i++) {
-    char* c = data->mails[i].content;
-		char** tokens = token_parser(data->mails[i].content, mail_len);
-		int* token_hashes = (int*) malloc(sizeof(int)*(*(mail_len)));
-		for (int j=0; j<*(mail_len); j++) {
-			token_hashes[j] = hash1(tokens[j]);
-			free(tokens[j]);
-		}
-		qsort(token_hashes, *(mail_len), sizeof(int), comp);
+    c[0] = 0;
+    strcat(c, data->mails[i].content);
+    strcat(c, data->mails[i].subject);
+
+		HASH_TYPE* token_hashes = token_parser(c, mail_len);
+		qsort(token_hashes, *(mail_len), sizeof(HASH_TYPE), compHash);
+
 		int unq_len = 0;
-		unique(token_hashes, *(mail_len), &unq_len);
+		uniqueHash(token_hashes, *(mail_len), &unq_len);
 		mail_hashes->hash[i] = token_hashes;
 		mail_hashes->len[i] = unq_len;
-		free(tokens);
+
 	}
 	free(mail_len);
 	return mail_hashes;
@@ -553,51 +645,289 @@ void queryMatch (TokenHash* mail_hash, Data *data, char *expr, Ans *ans) {
     qsort(ans->array, ans->len, sizeof(int), comp);
 }
 
-void querySimilar (Data *data, int mid, double threshold, Ans *ans) {
+// this is only the testing version of api.h
+// the input format and hashing function will be
+// different on DSA Judge
 
+#ifndef API_H
+#define API_H
+#define _GNU_SOURCE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+#include <stdbool.h>
+#include <string.h>
+
+typedef struct mail {
+	int id;
+	char from[32], to[32];
+	char subject[256], content[100000];
+} mail;
+
+typedef struct query {
+	int id;
+	double reward;
+
+	enum query_type {
+		expression_match,
+		find_similar,
+		group_analyse
+	} type;
+
+	union query_data {
+		struct {
+			char expression[2048];
+		} expression_match_data;
+
+		struct {
+			int mid;
+			double threshold;
+		} find_similar_data;
+
+		struct {
+			int len, mids[512];
+		} group_analyse_data;
+	} data;
+} query;
+
+long _get_process_cputime(){
+  static struct timespec t;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t);
+  return t.tv_sec * 1000 + t.tv_nsec / 1000000;
+}
+
+void _assert(bool condition, char message[]){
+	if(!condition){
+		printf("assertion failed: %s", message);
+		dup(0);  // calling a forbidden syscall to trigger Security Error on DSA Judge
+		exit(1);
+	}
+}
+
+void _answer(int qid, int answers[], int len){
+	static bool initialized = false;
+	static long _begin = 0;
+
+	if(initialized == false){
+		initialized = true;
+		_begin = _get_process_cputime();
+		return;
+	}
+
+	if(_get_process_cputime() - 5000 > _begin)
+		exit(0);
+
+	unsigned long long digest = 0x76efa04b78375b4b;
+	for(int i = 0; i < len; i++){
+		digest = (digest >> 17) | (digest << (64 - 17));
+    	digest ^= (unsigned long long)answers[i];
+    	digest = ~digest;
+	}
+	printf("%d %llx\n", qid, digest);
+}
+
+void api_init(int *n_mails, int *n_queries, mail **mails, query **queries){
+	_assert(_get_process_cputime() < 15, "Calling init too late");
+
+	// reading mails
+	char buffer[102400];
+	fgets(buffer, 1024, stdin);
+	sscanf(buffer, "%d", n_mails);
+
+	*mails = (mail *)malloc(*n_mails * sizeof(mail));
+
+	fgets(buffer, 1024, stdin);
+	_assert(strcmp(buffer, "=== dc685a9c7684059f ===\n") == 0, "Wrong input format");
+
+	for(int i = 0; i < *n_mails; i++){
+		mail *m = &(*mails)[i];
+
+		fgets(buffer, 1024, stdin);
+		sscanf(buffer, "%d", &(m->id));
+
+		fgets(m->from, 32, stdin);
+		m->from[strlen(m->from) - 1] = '\0';
+
+		fgets(m->content, 100000, stdin);
+		m->content[strlen(m->content) - 1] = '\0';
+
+		fgets(m->subject, 256, stdin);
+		m->subject[strlen(m->subject) - 1] = '\0';
+
+		fgets(m->to, 32, stdin);
+		m->to[strlen(m->to) - 1] = '\0';
+
+		fgets(buffer, 1024, stdin);
+		_assert(strcmp(buffer, "=== e47bbae5876702dc ===\n") == 0, "Wrong input format");
+	}
+
+	// reading queries
+	fgets(buffer, 1024, stdin);
+	sscanf(buffer, "%d", n_queries);
+
+	*queries = (query *)malloc(*n_queries * sizeof(query));
+
+	fgets(buffer, 1024, stdin);
+	_assert(strcmp(buffer, "=== dc685a9c7684059f ===\n") == 0, "Wrong input format");
+
+	for(int i = 0; i < *n_queries; i++){
+		query *q = &(*queries)[i];
+
+		int len;
+		unsigned long long seed;
+
+		fgets(buffer, 1024, stdin);
+		sscanf(buffer, "%d %lf", &q->id, &q->reward);
+
+		fgets(buffer, 1024, stdin);
+		switch(buffer[0]){
+			case 'e':
+				q->type = expression_match;
+				fgets(q->data.expression_match_data.expression, 2048, stdin);
+				q->data.expression_match_data.expression[strlen(q->data.expression_match_data.expression) - 1] = '\0';
+				break;
+			case 'f':
+				q->type = find_similar;
+				fgets(buffer, 1024, stdin);
+				sscanf(buffer, "%d %lf", &q->data.find_similar_data.mid, &q->data.find_similar_data.threshold);
+				break;
+			case 'g':
+				q->type = group_analyse;
+				fgets(buffer, 1024, stdin);
+				sscanf(buffer, "%llu %d", &seed, &len);
+
+				for(int i = 0; i < len; i++){
+					seed = (seed * 48271LL) % 2147483647;
+					q->data.group_analyse_data.mids[i] = seed % (*n_mails);
+				}
+
+				q->data.group_analyse_data.len = len;
+
+				break;
+		}
+
+		fgets(buffer, 1024, stdin);
+		_assert(strcmp(buffer, "=== e47bbae5876702dc ===\n") == 0, "Wrong input format");
+	}
+
+	_answer(0, 0, 0);
+}
+
+struct {
+	void (*init)(int *n_mails, int *n_queries, mail **mails, query **queries);
+	void (*answer)(int qid, int answers[], int len);
+} api = {api_init, _answer};
+
+#endif
+
+#ifndef DBG
+#define fprintf(...)
+#endif
+#define HASH_TYPE long long
+
+int hashInSortedArray (HASH_TYPE hash, HASH_TYPE* array, int sz) {
+  int L = -1, R = sz;
+  while (L < R - 1) {
+    int M = (L + R) >> 1;
+    if (array[M] < hash) L = M;
+    else R = M;
+  }
+  return R < sz && array[R] == hash;
+}
+
+int calcIntersection (int x, int y, TokenHash* mail_hash) {
+  int res = 0;
+  if (mail_hash->len[x] > mail_hash->len[y]) {
+    int tmp = x;
+    x = y;
+    y = tmp;
+  }
+
+  for (int i=0; i<mail_hash->len[x]; i++) {
+    res += hashInSortedArray(mail_hash->hash[x][i], mail_hash->hash[y], mail_hash->len[y]);
+  }
+
+  return res;
+}
+
+typedef struct similar_data {
+  int id;
+  double jaccard;
+} SimilarData;
+
+int jacComp (const void *a, const void *b) {
+  return ((SimilarData*)b)->jaccard - ((SimilarData*)a)->jaccard > 0 ? 1 : -1;
+}
+
+void querySimilar (Data *data, SimilarGroup* group, TokenHash* mail_hash) {
+  fprintf(stderr, "mail %d, %d queries\n", group->mId, group->qSz);
+  int target = group->mId;
+  
+  static int intersection[10004];
+  static SimilarData res[10004];
+
+  for (int i=0; i<data->n_mails; i++) {
+    if (i != target) intersection[i] = calcIntersection(i, target, mail_hash);
+    else intersection[i] = -1;
+
+    res[i].id = i;
+    res[i].jaccard = intersection[i] / (double)(mail_hash->len[i] + mail_hash->len[target] - intersection[i]);
+  }
+
+  fprintf(stderr, "%d %lf\n", data->n_mails, res[869].jaccard);
+  for (int i=0; i<100; i++) {
+    fprintf(stderr, "%lf ", res[i].jaccard);
+  }
+  fprintf(stderr, "\n");
+  qsort(res, data->n_mails, sizeof(SimilarData), jacComp);
+
+  static int ans[10004];
+  for (int i=0; i<group->qSz; i++) {
+    int qid = group->qIds[i];
+    double threshold = data->queries[qid].data.find_similar_data.threshold;
+    fprintf(stderr, "qid: %d %lf\n", qid, threshold);
+    int asz = 0;
+
+    for (int j=0; res[j].jaccard > threshold; j++) {
+      ans[asz++] = res[j].id;
+    }
+    qsort(ans, asz, sizeof(int), comp);
+
+    for (int j=0; j<asz; j++) {
+      fprintf(stderr, "%d ", ans[j]);
+    }
+    fprintf(stderr, "\n");
+    api.answer(qid, ans, asz);
+  }
+}
+
+#define HASH_TYPE long long
+
+int mailCompID (const void *a, const void *b) {
+  return ((mail*)a)->id - ((mail*)b)->id;
+}
+
+void sortMail (mail* mails, int sz) {
+  qsort(mails, sz, sizeof(mail), mailCompID);
 }
 
 int main(void) {
 	Data data;
-    Ans ans;
+  Ans ans;
 	api.init(&data.n_mails, &data.n_queries, &data.mails, &data.queries);
-    TokenHash* mail_hash = NULL;//mail_parser(&data);
+  sortMail(data.mails, data.n_mails);
+  TokenHash* mail_hash = mail_parser(&data);
 
-    PickOrder pick_order[data.n_queries];
-    int pickI = 0;
-//    pickProblem(pick_order, mail_hash, &data);
-     pickOnly(pick_order, &data, group_analyse);
+  PickOrder pick_order[data.n_queries];
+  SimilarGroup *similarGroups = pickSimilar(&data);
 
-    int cnt = 0;
+  int n_mails = data.n_mails;
+  for (int i=0; i<n_mails; i++) {
+    if (similarGroups[i].qSz == 0) continue;
+    querySimilar(&data, &similarGroups[i], mail_hash);
+  }
 
-    int step = 0;
-	while (true) {
-        int pid = pick_order[pickI++].id;
-        if (data.queries[pid].type == expression_match) {
-          break;
-            char *c = data.queries[pid].data.expression_match_data.expression;
-            queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
-
-            /*
-            puts("====");
-            for (int i=0; i<ans.len; i++) {
-              printf("%d ", ans.array[i]);
-            }
-            puts("====");
-            */
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-        } else if (data.queries[pid].type == find_similar) {
-          break;
-            querySimilar(&data, data.queries[pid].data.find_similar_data.mid, data.queries[pid].data.find_similar_data.threshold, &ans);
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-        } else if (data.queries[pid].type == group_analyse) {
-            int len = data.queries[pid].data.group_analyse_data.len; 
-            int* mids = data.queries[pid].data.group_analyse_data.mids; 
-//            if (data.queries[pid].id != 2442) continue;
-            queryGroup(&data, &ans, len, mids);
-            api.answer(data.queries[pid].id, ans.array, ans.len);
-            free(ans.array);
-        } 
-	}
-    return 0;
+  return 0;
 }

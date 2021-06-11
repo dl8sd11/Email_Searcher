@@ -5,8 +5,9 @@
 #ifndef DBG
 #define fprintf(...)
 #endif
+#define HASH_TYPE long long
 
-int hashInSortedArray (int hash, int* array, int sz) {
+int hashInSortedArray (HASH_TYPE hash, HASH_TYPE* array, int sz) {
   int L = -1, R = sz;
   while (L < R - 1) {
     int M = (L + R) >> 1;

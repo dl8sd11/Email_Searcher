@@ -3,12 +3,14 @@
 #include "hash.h"
 #include "group.h"
 #include <string.h>
-char** token_parser(char* content, int* mail_token_len);
+#define HASH_TYPE long long
+HASH_TYPE* token_parser(char* content, int* mail_token_len);
 //int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "helper.h"
 
 bool valid_char(char k) {								//check if character in [A-Za-z0-9]
 	if (k > 47 && k < 58) return true;
@@ -21,7 +23,7 @@ char lower (char c) {
   if (c >= 'A' && c <= 'Z') return c - 'A' + 'a';
   return c;
 }
-char** token_parser (char* content, int* mail_token_len) {
+HASH_TYPE* token_parser (char* content, int* mail_token_len) {
   int N = strlen(content);
   (*mail_token_len) = 0;
   for (int i=0; i<N; i++) {
@@ -30,7 +32,7 @@ char** token_parser (char* content, int* mail_token_len) {
     }
   }
 
-	char** substringSet = (char**)malloc(sizeof(char*)*(*mail_token_len));		//the set of all sliced token
+	HASH_TYPE* substringSet = (HASH_TYPE*)malloc(sizeof(HASH_TYPE*)*(*mail_token_len));		//the set of all sliced token
   int substringIdx = 0;
   char buf[100];
 
@@ -44,7 +46,7 @@ char** token_parser (char* content, int* mail_token_len) {
       char* cur = (char*)malloc(sizeof(char) * (bid + 1));
       buf[bid] = 0;
       strcpy(cur, buf);
-      substringSet[substringIdx++] = cur;
+      substringSet[substringIdx++] = hash3(cur);
       bid = 0;
     }
   }
@@ -125,27 +127,26 @@ char** token_parser_clone(char* content, int* mail_token_len) {
 	return substringSet;							//return the token set
 }
 
+
 TokenHash* mail_parser(Data* data) {
 	TokenHash* mail_hashes = (TokenHash*)malloc(sizeof(TokenHash));
-	mail_hashes->hash = (int**)malloc(sizeof(int*)*data->n_mails);
+	mail_hashes->hash = (HASH_TYPE**)malloc(sizeof(HASH_TYPE*)*data->n_mails);
 	mail_hashes->len = (int*)malloc(sizeof(int)*data->n_mails);
 	int* mail_len = (int*) malloc(sizeof(int));
+  char c[100305];
 	for (int i=0; i<data->n_mails; i++) {
-    char* c = data->mails[i].content;
-		char** tokens = token_parser(data->mails[i].content, mail_len);
-		int* token_hashes = (int*) malloc(sizeof(int)*(*(mail_len)));
-		for (int j=0; j<*(mail_len); j++) {
-			token_hashes[j] = hash1(tokens[j]);
-			free(tokens[j]);
-		}
+    c[0] = 0;
+    strcat(c, data->mails[i].content);
+    strcat(c, data->mails[i].subject);
 
-		qsort(token_hashes, *(mail_len), sizeof(int), comp);
+		HASH_TYPE* token_hashes = token_parser(c, mail_len);
+		qsort(token_hashes, *(mail_len), sizeof(HASH_TYPE), compHash);
+
 		int unq_len = 0;
-		unique(token_hashes, *(mail_len), &unq_len);
+		uniqueHash(token_hashes, *(mail_len), &unq_len);
 		mail_hashes->hash[i] = token_hashes;
 		mail_hashes->len[i] = unq_len;
 
-		free(tokens);
 	}
 	free(mail_len);
 	return mail_hashes;
