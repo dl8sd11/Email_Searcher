@@ -17,7 +17,7 @@ int main(void) {
     PickOrder pick_order[data.n_queries];
     int pickI = 0;
 //    pickProblem(pick_order, mail_hash, &data);
-     pickOnly(pick_order, &data, expression_match);
+     pickOnly(pick_order, &data, group_analyse);
 
     int cnt = 0;
 
@@ -25,6 +25,7 @@ int main(void) {
 	while (true) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
+          break;
             char *c = data.queries[pid].data.expression_match_data.expression;
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
 
@@ -41,7 +42,6 @@ int main(void) {
             querySimilar(&data, data.queries[pid].data.find_similar_data.mid, data.queries[pid].data.find_similar_data.threshold, &ans);
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == group_analyse) {
-          break;
             int len = data.queries[pid].data.group_analyse_data.len; 
             int* mids = data.queries[pid].data.group_analyse_data.mids; 
 //            if (data.queries[pid].id != 2442) continue;

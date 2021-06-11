@@ -3,3 +3,6 @@ main
 a.out
 gen.c
 *.pdf
+main-gen
+main-gen.c
+debug
