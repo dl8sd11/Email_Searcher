@@ -1,0 +1,42 @@
+---
+title: "DSA Email Searcher"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(showtext)
+showtext_auto()
+```
+
+
+```{r}
+lines <- read.delim("/home/tommydong/workspace/ntu/109-2/dsa/Email_Searcher/stat.txt")
+lens <- as.integer(lines$X147)
+
+df = data.frame(
+  len = lens
+)
+
+print(sum(lens))
+```
+
+```{r}
+df %>%
+  count(len) %>%
+  ggplot(aes(n)) + geom_bar() +
+  xlab("tokens length") +
+  ylab("numbers of mail")
+```
+
+```{r}
+df %>%
+  ggplot(aes(y=len)) + geom_boxplot(outlier.shape = NA) +
+  coord_cartesian(ylim = quantile(df$len, c(0.1, 0.9)))
+```
+
