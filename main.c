@@ -15,9 +15,14 @@ int main(void) {
     TokenHash* mail_hash = mail_parser(&data);
 
     PickOrder pick_order[data.n_queries];
+/*<<<<<<< Updated upstream
     int pickI = 0;
 //    pickProblem(pick_order, mail_hash, &data);
      pickOnly(pick_order, &data, expression_match);
+=======*/
+    int pickI = 2000;
+    pickOnly(pick_order, &data, expression_match);
+//>>>>>>> Stashed changes
 
     int cnt = 0;
 
@@ -26,15 +31,25 @@ int main(void) {
         int pid = pick_order[pickI++].id;
         if (data.queries[pid].type == expression_match) {
             char *c = data.queries[pid].data.expression_match_data.expression;
+//<<<<<<< Updated upstream
             queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
 
             /*
+=======
+            //if (pid != 67) continue;
+            queryMatch(mail_hash, &data, data.queries[pid].data.expression_match_data.expression, &ans);
+			//
+>>>>>>> Stashed changes
             puts("====");
             for (int i=0; i<ans.len; i++) {
               printf("%d ", ans.array[i]);
             }
             puts("====");
+<<<<<<< Updated upstream
             */
+//=======
+			//*/
+//>>>>>>> Stashed changes
             api.answer(data.queries[pid].id, ans.array, ans.len);
         } else if (data.queries[pid].type == find_similar) {
           break;
