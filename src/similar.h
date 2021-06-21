@@ -1,21 +1,12 @@
 #pragma once
 #include "io.h"
+#include "helper.h"
 #include "../api.h"
 #include "group.h"
 #ifndef DBG
 #define fprintf(...)
 #endif
 #define HASH_TYPE long long
-
-int hashInSortedArray (HASH_TYPE hash, HASH_TYPE* array, int sz) {
-  int L = -1, R = sz;
-  while (L < R - 1) {
-    int M = (L + R) >> 1;
-    if (array[M] < hash) L = M;
-    else R = M;
-  }
-  return R < sz && array[R] == hash;
-}
 
 int calcIntersection (int x, int y, TokenHash* mail_hash) {
   int res = 0;
@@ -32,17 +23,6 @@ int calcIntersection (int x, int y, TokenHash* mail_hash) {
   return res;
 }
 
-typedef struct similar_data {
-  int id;
-  double jaccard;
-} SimilarData;
-
-
-
-int jacComp (const void *a, const void *b) {
-  return ((SimilarData*)b)->jaccard - ((SimilarData*)a)->jaccard > 0 ? 1 : -1;
-}
-
 void querySimilar (Data *data, SimilarGroup* group, TokenHash* mail_hash) {
   fprintf(stderr, "mail %d, %d queries\n", group->mId, group->qSz);
   int target = group->mId;
@@ -57,9 +37,6 @@ void querySimilar (Data *data, SimilarGroup* group, TokenHash* mail_hash) {
     res[i].id = i;
     res[i].jaccard = intersection[i] / (double)(mail_hash->len[i] + mail_hash->len[target] - intersection[i]);
   }
-
-
-
 
   fprintf(stderr, "%d %lf\n", data->n_mails, res[869].jaccard);
   for (int i=0; i<100; i++) {
