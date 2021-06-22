@@ -63,6 +63,11 @@ int hashInSortedArray (HASH_TYPE hash, HASH_TYPE* array, int sz) {
   }
   return R < sz && array[R] == hash;
 }
+/*
+binary search array index
+example: sorted array = [1,3,8]
+         if target = 8, return 2
+*/
 int SearchArrayId(int *array, int arrayN, int target){
 	int L = -1, R = arrayN, M;
 	while (L < R-1){
