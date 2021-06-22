@@ -1,6 +1,6 @@
 #pragma once
 #include "../api.h"
-#define HASH_TYPE long long
+#define HASH_TYPE int
 typedef struct data {
   int n_mails, n_queries;
   mail *mails;
@@ -16,6 +16,11 @@ typedef struct token_hash {
   HASH_TYPE** hash; // hash[i][j] repr jth token of ith mail
   int* len;   // len[i] repr number of token of ith mail
 } TokenHash;
+
+typedef struct token_table {
+  int **mailId;
+  int *len;
+} TokenTable;
 
 typedef struct pick_order{
   int id;// ith query

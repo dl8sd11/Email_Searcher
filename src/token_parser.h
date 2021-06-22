@@ -3,7 +3,7 @@
 #include "hash.h"
 #include "group.h"
 #include <string.h>
-#define HASH_TYPE long long
+#define HASH_TYPE int
 HASH_TYPE* token_parser(char* content, int* mail_token_len);
 //int* token_parser_hash(char *content);
 TokenHash* mail_parser (Data* data);
@@ -36,7 +36,7 @@ HASH_TYPE* token_parser (char* content, int* mail_token_len) {
       char* cur = (char*)malloc(sizeof(char) * (bid + 1));
       buf[bid] = 0;
       strcpy(cur, buf);
-      substringSet[substringIdx++] = hash3(cur);
+      substringSet[substringIdx++] = hash1(cur);
       bid = 0;
     }
   }

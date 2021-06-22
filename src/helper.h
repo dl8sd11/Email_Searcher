@@ -1,5 +1,5 @@
 #pragma once
-#define HASH_TYPE long long
+#define HASH_TYPE int
 #include "io.h"
 #include <string.h>
 
@@ -68,7 +68,7 @@ binary search array index
 example: sorted array = [1,3,8]
          if target = 8, return 2
 */
-int SearchArrayId(int *array, int arrayN, int target){
+int SearchArrayId(HASH_TYPE *array, int arrayN, HASH_TYPE target){
 	int L = -1, R = arrayN, M;
 	while (L < R-1){
 		M = (L+R)/2;

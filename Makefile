@@ -8,7 +8,7 @@ validator/validator: validator/validator.cpp
 	g++ validator/validator.cpp -o validator/validator -O3 
 
 debug: main.c api.h src/*.h
-	gcc main.c -o debug -O3 -std=c11 -w -lm -g -fsanitize=address -fsanitize=undefined
+	gcc main.c -o debug -O3 -std=c11 -w -lm -g -fsanitize=address -fsanitize=undefined -DDBG
 
 .PHONY=run
 run: main validator/validator

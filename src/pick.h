@@ -88,16 +88,16 @@ SimilarGroup* pickSimilar (Data *data) {
   SimilarGroup* groups = (SimilarGroup*)malloc(sizeof(SimilarGroup) * n_mails);
 
   for (int i=0; i<n_mails; i++) {
-  initGroup(groups + i, i);
+    initGroup(groups + i, i);
   }
 
   for (int i=0; i<n_queries; i++) {
-  if (data->queries[i].type != find_similar) continue;
-  int mid = data->queries[i].data.find_similar_data.mid;
-  int qid = data->queries[i].id;
+    if (data->queries[i].type != find_similar) continue;
+    int mid = data->queries[i].data.find_similar_data.mid;
+    int qid = data->queries[i].id;
 
-  push_back(&groups[mid].qIds, qid, &groups[mid].cap, &groups[mid].qSz);
-  groups[mid].score += data->queries[i].reward;
+    push_back(&groups[mid].qIds, qid, &groups[mid].cap, &groups[mid].qSz);
+    groups[mid].score += data->queries[i].reward;
   }
 
   qsort(groups, n_mails, sizeof(SimilarGroup), groupComp);

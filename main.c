@@ -7,8 +7,8 @@
 #include "src/token_parser.h"
 #include "src/token_table_gen.h"
 #define HASH_TYPE long long
-clock_t prev = 0;
 
+clock_t prev = 0;
 
 void start () {
   prev = clock();
