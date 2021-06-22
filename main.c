@@ -3,26 +3,37 @@
 #include <assert.h>
 #include "src/io.h"
 #include "src/pick.h"
-#include "src/match.h"
-#include "src/group.h"
 #include "src/similar.h"
 #include "src/token_parser.h"
 #define HASH_TYPE long long
-
-int mailCompID (const void *a, const void *b) {
-  return ((mail*)a)->id - ((mail*)b)->id;
-}
-
-void sortMail (mail* mails, int sz) {
-  qsort(mails, sz, sizeof(mail), mailCompID);
-}
 
 int main(void) {
 	Data data;
   Ans ans;
 	api.init(&data.n_mails, &data.n_queries, &data.mails, &data.queries);
-  sortMail(data.mails, data.n_mails);
+  qsort(data.mails, data.n_mails, sizeof(data.mails), mailIdComp);
   TokenHash* mail_hash = mail_parser(&data);
+  // step 1 : remap mail_hash.hash
+  int allToken = 0;
+  for (int i = 0; i < data.n_mails; i++){
+    allToken += mailhash.len[i];
+  }
+  HASH_TYPE allTokenHash[allToken];
+  int id = 0;
+  for (int i = 0; i < data.n_mails; i++){
+    for (int j = 0; j < mail_hash.len[i]; j++)
+      allTokenHash[id++] = mail_hash.hash[i][j];
+  }
+  qsort(allTokenHash, allToken, sizeof(HASH_TYPE), hashComp);
+  int uniqueToken = 0;
+  uniqueHash(allTokenHash, allToken, &uniqueToken);
+  for (int i = 0; i < data.n_mails; i++){
+    for (int j = 0; j < mail_hash.len[i]; j++)
+      mail_hash.hash[i][j] = SearchArrayId(allTokenHash, uniqueToken, mail_hash.hash[i][j]);
+  }
+  // *allTokenHash : array storing unique hashes
+  // uniqueToken : length of the allTokenHash
+  // step 1 end
 
   PickOrder pick_order[data.n_queries];
   SimilarGroup *similarGroups = pickSimilar(&data);
