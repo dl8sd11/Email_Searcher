@@ -13,7 +13,6 @@ void initGroup (SimilarGroup* group, int mid) {
   group->score = 0;
 }
 
-
 SimilarGroup* pickSimilar (Data *data) {
   int n_mails = data->n_mails, n_queries = data->n_queries;
   SimilarGroup* groups = (SimilarGroup*)malloc(sizeof(SimilarGroup) * n_mails);
