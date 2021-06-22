@@ -63,7 +63,15 @@ int hashInSortedArray (HASH_TYPE hash, HASH_TYPE* array, int sz) {
   }
   return R < sz && array[R] == hash;
 }
-
+int SearchArrayId(int *array, int arrayN, int target){
+	int L = -1, R = arrayN, M;
+	while (L < R-1){
+		M = (L+R)/2;
+		if (array[M] >= target) R = M;
+		else L = M;
+	}
+	return R;
+}
 
 char lower (char c) {
   if (c >= 'A' && c <= 'Z') return c - 'A' + 'a';
