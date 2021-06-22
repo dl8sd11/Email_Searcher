@@ -1,7 +1,6 @@
 #pragma once
 #include <math.h>
 #include "io.h"
-#include "group.h"
 #include <string.h>
 #include "helper.h"
 

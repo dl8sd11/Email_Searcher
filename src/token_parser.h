@@ -1,7 +1,6 @@
 #pragma once
 #include "io.h"
 #include "hash.h"
-#include "group.h"
 #include <string.h>
 #define HASH_TYPE int
 HASH_TYPE* token_parser(char* content, int* mail_token_len);
