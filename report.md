@@ -3,60 +3,7 @@ title: "Email Searcher Report"
 author: Team 4 B08902146, B09902056, B09902102
 geometry: margin=2cm
 ---
-
-## Observations
-
-### Hash
-    
-We observed that we have to hash tokens into integers in all types of queries. Therefore we must use an hash that ballances efficiency and collision frequency. We compare 2 different size hashes by 2 tests. 
-
-
-|      | hash1 | hash2 |
-| ---- | ----- | ----- |
-| size | 32-bit | 64-bit |
-
-
-#### test 1
-The time cost of hashing a string(strlen=10) 10^8 times
-```c=
-for (int i = 1; i < 10^8; i++)
-    hash(string);
-```
-
-|       | hash1 | hash2 |
-| ----- | ----- | ----- |
-| time cost | 1.99 s | 21.75 s |
-
-#### test 2
-Keep generating random string(strlen=10) and hash it. Stop if its hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
-```c=
-array[200000];
-for (int i = 0; i < 100; i++){
-  int times = 0;
-  bool collision = false;
-  while (times < 200000 && !collision) {
-    string = random_string();//strlen=10
-    hash = Hash(string)
-    for (int j = 0; j < times; j++){
-        if (hash == array[j])
-            collision = true;
-    }
-    array[times] = hash;
-    times++;
-  }
-  all_times += times;
-}
-average_time = all_times / 100;
-```
-
-
-|   | hash1 | hash2 |
-| - | -------- | -------- |
-| average times |  83074    | 200000 (no collision)     |
-
-According to test1 and test2, hash1 is better. It is 10 times faster than hash2. Though there are collisions, that's less enough.  
-
-### Data Analysis
+## Data Analysis
 
 The mails are the subset of mails for the previous year, so we decided to take a glance at the data. Here are some information we gathered:
 
@@ -68,11 +15,29 @@ The mails are the subset of mails for the previous year, so we decided to take a
     - most mails have small token set
     - max: 3412
 
-![](https://i.imgur.com/zRByIlD.png)
-
+The token size distrubution graph can be found in [graph.html]()
 
 ## Algorithms
 
+### Hash
+    
+We compare 2 hashes by their time cost and collision probability. 
+
+#### time cost 
+
+The time cost of hashing a string(strlen=10) 10^8 times
+
+#### collision probability
+
+Keep generating random string of length 10 and hash it. Stop if its hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
+
+|                          | hash1  | hash2                 |
+| ------------------------ | ------ | --------------------- |
+| size                     | 32-bit | 64-bit                |
+| time cost ($10^8$ times) | 1.99 s | 21.75 s               |
+| average collision size   | 83074  | 200000 (no collision) |
+
+According to test1 and test2, hash1 is better. It is 10 times faster than hash2. Though there are collisions, that's less enough.
 
 
 ### Group Analyse
@@ -201,9 +166,7 @@ end
 | ------------------- | ---------------------- | -------------------------------------- |
 | Group ($Z$ mails)   | $O(N \times X \log X)$ | $O(Z \times \alpha(Z))$                |
 | Match               |                        |                                        |
-| Similar Original    | $O(N \times X \log X)$ | $O(N \times M \log X)$                 |
-| Linear Intersection | $O(N \times X \log X)$ | $O(N \times X)$                        |
-| Reverse Matching    | $O(N \times X \log X)$ | $O(\sum intersection) = O(N \times X)$ |
+| Simiar   | $O(N \times X \log X)$ | $O(\sum intersection) = O(N \times X)$ |
 
 
 
