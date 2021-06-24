@@ -139,16 +139,7 @@ The time complexity of every query become $O(\sum intersection[i])$. Although th
 
 ### Flowchart
 
-```mermaid
-flowchart LR
-subgraph 1[Pre-process on Mails]
-A(Store mails and queries into self-defined structure Data)-->B(Sort the mails by ID)-->C(Parse emails into tokens represents by hash values)-->D(Remove duplicate tokens inside a mail)-->E(Build a table which mapping mailIDs with hash values)
-end
-subgraph 2[Execution]
-X(Pick up problem type 'Similar' only)-->Y(Group up problems with same query targeted email)-->Z(Move on to checking similarity)
-end
-1-->2
-```
+[Magical link]()
 
 ## Result Analysis
 
@@ -189,16 +180,4 @@ We the following tools to support our development:
 
 ## Appendix II: Repository Structure
 
-```
-├── src 
-│    ├── io.h
-│    ├── helper.h
-│    ├── hash.h
-│    ├── pick.h
-│    ├── similar.h
-│    ├── token_parser.h
-│    └── token_table_gen.h
-├── Makefile
-├── convert.sh
-└── main.c
-```
+[Magical link]
