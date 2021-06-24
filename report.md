@@ -1,8 +1,11 @@
 ---
-title: "Email Searcher Report"
-author: Team 4 B08902146, B09902056, B09902102
 geometry: margin=2cm
 ---
+
+# Email Searcher Report
+
+Team 4: B08902146, B09902056, B09902102
+
 ## Data Analysis
 
 The mails are the subset of mails for the previous year, so we decided to take a glance at the data. Here are some information we gathered:
@@ -42,25 +45,13 @@ According to test1 and test2, hash1 is better. It is 10 times faster than hash2.
 
 ### Group Analyse
 
-This query requires us to treat each mail as a edge connecting the sender and the reciever then return the number of connected component and the size of the largest one. To maintain connected components, we use disjoint set method instead of graph searching method.
+To maintain connected components, we use disjoint set method instead of graph searching method.
 
 - Data structure: disjoint set
     - find set: $O(q \times \alpha(n))$
     - merge set: $O(q \times \alpha(n))$
 
-Since the name of sender and reciever are strings, it's quite inconvenient to handle the graph. We remap the name set of size $N$ into a set of integer in range $[0, N)$ using the following algorithm:
-
-- Push all the names into an array $A$
-- Hash every elements in $A$ to an new array $H$
-- Sort $H$
-- Collect unique items $U$ in $H$
-- Remap function for $str$:
-    - hash $str$ to $h1$
-    - hash $str$ to $h1$
-    - binary search $h1$ on
-    - $str$ is remapped to $i$
-
-Finally, the problem can be solved using following algorithm:
+Since the name of sender and reciever are strings, it's quite inconvenient to handle the graph. We remap the name set of size $N$ into a set of integer in range $[0, N)$ Finally, the problem can be solved using following algorithm:
 
 - Create $N$ sets to represent every user
 - For every mail:
@@ -73,7 +64,6 @@ The time complexity of this algorithm is $O(N \log N)$ where $N$ is the number o
 
 ### Expression Match
 
-In this type of query, we're asked to check if a expression is matched for any email, and output all emails satisfied the given expression. 
 
 - Data Structure: Singly-linked-list
 
@@ -97,6 +87,7 @@ As we obtain the processed expression, we can further move on to checking if any
 With the return value of the functions, we can have the sum of all nodes which is the result of doing `or` operation between each node. That is, $0$ represents failure on matching the expression with the email while nonzero values reveal that the expression is matched! 
 
 #### Complexity Analysis
+
 - Time complexity
     - $O(N)$ for the expression breaking down process, where $N$ denotes the length of the expression 
     - $O(Mlog(L))$ for the resolving process as $M$ denotes the number of tokens in the expression, and $log(L)$ denoted checking via binary search in $L$ items where $L$ is the number of tokens inside an email 
