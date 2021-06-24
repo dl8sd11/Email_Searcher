@@ -1,17 +1,64 @@
-# Email Searcher Report
-
-Team 4: B08902146, B09902056, B09902102
+---
+title: "Email Searcher Report"
+author: Team 4 B08902146, B09902056, B09902102
+geometry: margin=2cm
+---
 
 ## Observations
 
 ### Hash
     
-We observed that we have to hash tokens, which are strings, into integers in all types of queries. Therefore we must use an hash that ballances efficiency and collision frequency. We compare two hashes, hash1 and hash2 with size 32-bit and 64-bit. 
-    
+We observed that we have to hash tokens into integers in all types of queries. Therefore we must use an hash that ballances efficiency and collision frequency. We compare 2 different size hashes by 2 tests. 
+
+
+|      | hash1 | hash2 |
+| ---- | ----- | ----- |
+| size | 32-bit | 64-bit |
+
+
+#### test 1
+The time cost of hashing a string(strlen=10) 10^8 times
+```c=
+for (int i = 1; i < 10^8; i++)
+    hash(string);
+```
+
+|       | hash1 | hash2 |
+| ----- | ----- | ----- |
+| time cost | 1.99 s | 21.75 s |
+
+#### test 2
+Keep generating random string(strlen=10) and hash it. Stop if its hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
+```c=
+array[200000];
+for (int i = 0; i < 100; i++){
+  int times = 0;
+  bool collision = false;
+  while (times < 200000 && !collision) {
+    string = random_string();//strlen=10
+    hash = Hash(string)
+    for (int j = 0; j < times; j++){
+        if (hash == array[j])
+            collision = true;
+    }
+    array[times] = hash;
+    times++;
+  }
+  all_times += times;
+}
+average_time = all_times / 100;
+```
+
+
+|   | hash1 | hash2 |
+| - | -------- | -------- |
+| average times |  83074    | 200000 (no collision)     |
+
+According to test1 and test2, hash1 is better. It is 10 times faster than hash2. Though there are collisions, that's less enough.  
 
 ### Data Analysis
 
-The mails are the subset of mails for the previous year, so we decided to take a glance on the data. Here are some information we gathered:
+The mails are the subset of mails for the previous year, so we decided to take a glance at the data. Here are some information we gathered:
 
 - 10000 mails
 - 145434 unique tokens
@@ -30,13 +77,13 @@ The mails are the subset of mails for the previous year, so we decided to take a
 
 ### Group Analyse
 
-This query requires us to treat each mail as a edge connecting the sender and reciever then return the number of connected component and the size of the largest. To maintain connected components, we use disjoint set method instead of graph searching method.
+This query requires us to treat each mail as a edge connecting the sender and the reciever then return the number of connected component and the size of the largest one. To maintain connected components, we use disjoint set method instead of graph searching method.
 
 - Data structure: disjoint set
     - find set: $O(q \times \alpha(n))$
     - merge set: $O(q \times \alpha(n))$
 
-Since the name of sender and reciever are strings, it's quite inconvenience to handle the graph. We remap the name set of size $N$ into a set of integer in range $[0, N)$ using the following algorithm:
+Since the name of sender and reciever are strings, it's quite inconvenient to handle the graph. We remap the name set of size $N$ into a set of integer in range $[0, N)$ using the following algorithm:
 
 - Push all the names into an array $A$
 - Hash every elements in $A$ to an new array $H$
@@ -48,7 +95,7 @@ Since the name of sender and reciever are strings, it's quite inconvenience to h
     - binary search $h1$ on
     - $str$ is remapped to $i$
 
-Finally, the problem can be solve using following algorithm:
+Finally, the problem can be solved using following algorithm:
 
 - Create $N$ sets to represent every user
 - For every mail:
@@ -61,11 +108,11 @@ The time complexity of this algorithm is $O(N \log N)$ where $N$ is the number o
 
 ### Expression Match
 
-In this type of query, we're asked to check if a expression is matched for any email, and output all emails satisfied the given expression 
+In this type of query, we're asked to check if a expression is matched for any email, and output all emails satisfied the given expression. 
 
 - Data Structure: Singly-linked-list
 
-First, we execute some prepocess on the given expression by slicing it down into nodes of the linked list
+First, we execute some prepocess on the given expression by slicing it down into nodes of the linked list.
 
 - Slicing Policy: 
     - Each node of the linked list contains expressions with `&` between, parentheses, or only a single token
@@ -73,7 +120,7 @@ First, we execute some prepocess on the given expression by slicing it down into
     - Parentheses with only a token inside will be regards as a single token
     - `!` will be marked in the node of `(` or a single token
 
-As we obtain the processed expression, we can further move on to checking if any emails matched the given expression via the following method 
+As we obtain the processed expression, we can further move on to checking if any emails matched the given expression via the following method. 
 
 - Resolving Method
     - Use binary search to find out if a token exists in the email
@@ -82,7 +129,7 @@ As we obtain the processed expression, we can further move on to checking if any
         - Make new recursive call if encounter `(`
         - Return when a `)` appears
         
-With the return value of the functions, we can have the sum of all nodes which is the result of doing `or` operation between each node. That is, $0$ represents failure on matching the expression with the email while nonzero values reveal that the expression is matched!`` 
+With the return value of the functions, we can have the sum of all nodes which is the result of doing `or` operation between each node. That is, $0$ represents failure on matching the expression with the email while nonzero values reveal that the expression is matched! 
 
 #### Complexity Analysis
 - Time complexity
@@ -95,11 +142,11 @@ With the return value of the functions, we can have the sum of all nodes which i
 
 #### Grouping queries of same target mail
 
-For similar queries, we are required to filter the mails which have similarity greater than a threshold with a target mail. Since there can be many queries sharing same target mail with different threshold, we group the queries with same target together.
+For similar queries, we are required to filter the mails which have similarity greater than a threshold with a target mail. Since there can be many queries sharing same target mail with different threshold, we group up the queries with same target together.
 
 #### Original method
 
-For every target mail, we need to calculate its similarity with all other emails. At first we came up the following algorithm to caculate the similarity between two mails.
+For every target mail, we need to calculate its similarity with all the other emails. At first we came up the following algorithm to caculate the similarity between two mails.
 
 - hash the tokens for the two email
 - sort the hashes for both email
@@ -129,7 +176,7 @@ The time complexity of every query become $O(\sum intersection[i])$. Although th
 
 ```mermaid
 flowchart LR
-subgraph 1[Preprocess on Mails]
+subgraph 1[Pre-process on Mails]
 A(Store mails and queries into self-defined structure Data)-->B(Sort the mails by ID)-->C(Parse emails into tokens represents by hash values)-->D(Remove duplicate tokens inside a mail)-->E(Build a table which mapping mailIDs with hash values)
 end
 subgraph 2[Execution]
@@ -164,7 +211,7 @@ end
 
 ### Schedueling Strategy
 
-We found out that the point per time we get among the type of query differs greatly. So we decided to only investigate time on similar query. Although we only do similar query but the order of the queries matters. We group the mails with same targetID together, then sort them according to the sum of reward.
+We found out that the point per time we get among the type of query differs greatly. So we decided to only investigate time on similar query. Although we only do similar query, the order of the queries matters. We group the mails with same targetID together, then sort them according to the sum of rewards.
 
 ### Score
 
