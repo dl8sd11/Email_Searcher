@@ -24,15 +24,11 @@ The token size distrubution graph can be found in [graph.html]()
 
 ### Hash
     
-We compare 2 hashes by their time cost and collision probability. 
+We compare 2 hashes by their time cost and collision probability.
 
-#### time cost 
+Time cost: hashing a string(strlen=10) 10^8 times
 
-The time cost of hashing a string(strlen=10) 10^8 times
-
-#### collision probability
-
-Keep generating random string of length 10 and hash it. Stop if its hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
+Collision probability: keep hashing random string of strlen=10. Stop if the hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
 
 |                          | hash1  | hash2                 |
 | ------------------------ | ------ | --------------------- |
@@ -67,22 +63,18 @@ The time complexity of this algorithm is $O(N \log N)$ where $N$ is the number o
 
 - Data Structure: Singly-linked-list
 
-First, we execute some prepocess on the given expression by slicing it down into nodes of the linked list.
+First, we slice the given expression down into nodes of the linked list.
 
-- Slicing Policy: 
-    - Each node of the linked list contains expressions with `&` between, parentheses, or only a single token
-    - Link between nodes implies `|` operations
-    - Parentheses with only a token inside will be regards as a single token
-    - `!` will be marked in the node of `(` or a single token
+- Each node contains an expression with `&` between, parentheses, or only a single token
+- Link between nodes implies `|` operations
+- Parentheses with only a token inside will be regards as a single token
+- `!` will be marked in the node of `(` or a single token
 
 As we obtain the processed expression, we can further move on to checking if any emails matched the given expression via the following method. 
 
-- Resolving Method
-    - Use binary search to find out if a token exists in the email
-    - As each node must represent a `true` / `false` value, use a recursive function to compute the sum of all nodes
-    - Policy: 
-        - Make new recursive call if encounter `(`
-        - Return when a `)` appears
+- Use binary search to find out if a token exists in the email
+- As each node must represent a `true` / `false` value, use a recursive function to compute the sum of all nodes
+- Make new recursive call if encounter `(`, and return when a `)` appears
         
 With the return value of the functions, we can have the sum of all nodes which is the result of doing `or` operation between each node. That is, $0$ represents failure on matching the expression with the email while nonzero values reveal that the expression is matched! 
 
@@ -138,17 +130,18 @@ The time complexity of every query become $O(\sum intersection[i])$. Although th
 
 - $N$: Number of mails
 - $M$: Sum of token size
-- $X$: Max set size
+- $X$: Max token set size
+- $E$: Length of expression
 
 
 
 ### Time compexity
 
-| Algorithm           | Pre-processing         | Per query                              |
-| ------------------- | ---------------------- | -------------------------------------- |
-| Group ($Z$ mails)   | $O(N \times X \log X)$ | $O(Z \times \alpha(Z))$                |
-| Match               |                        |                                        |
-| Simiar   | $O(N \times X \log X)$ | $O(\sum intersection) = O(N \times X)$ |
+| Algorithm         | Pre-processing         | Per query                              |
+| ----------------- | ---------------------- | -------------------------------------- |
+| Group ($Z$ mails) | $O(N \times X \log X)$ | $O(Z \times \alpha(Z))$                |
+| Match             | $O(E)$                 | $O(E \times log(X))$                                     |
+| Simiar            | $O(N \times X \log X)$ | $O(\sum intersection) = O(N \times X)$ |
 
 
 
