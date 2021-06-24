@@ -122,7 +122,7 @@ The time complexity of every query become $O(\sum intersection[i])$. Although th
 
 ### Flowchart
 
-[Magical link](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/flowchart.svg)
+[Flowchart](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/flowchart.svg)
 
 ## Result Analysis
 
@@ -164,4 +164,4 @@ We the following tools to support our development:
 
 ## Appendix II: Repository Structure
 
-[Magical link](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/structure.txt)
+[Repository Structure](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/structure.txt)
