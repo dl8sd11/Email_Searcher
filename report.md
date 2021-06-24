@@ -18,7 +18,7 @@ The mails are the subset of mails for the previous year, so we decided to take a
     - most mails have small token set
     - max: 3412
 
-The token size distrubution graph can be found in [graph.html]()
+The token size distrubution graph can be found in [graph.html](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/plot.html)
 
 ## Algorithms
 
@@ -28,13 +28,13 @@ We compare 2 hashes by their time cost and collision probability.
 
 Time cost: hashing a string(strlen=10) 10^8 times
 
-Collision probability: keep hashing random string of strlen=10. Stop if the hash collide with any hash generated before, or it has done 200000 times. Do this 100 times and get the average times.
+Collision probability: keep hashing random string of strlen=10 to figure out the maximum set size of hash table without collision until it expands to 200000
 
 |                          | hash1  | hash2                 |
 | ------------------------ | ------ | --------------------- |
 | size                     | 32-bit | 64-bit                |
 | time cost ($10^8$ times) | 1.99 s | 21.75 s               |
-| average collision size   | 83074  | 200000 (no collision) |
+| average collision size   | 83074  | 200000(no collision when <200000) |
 
 According to test1 and test2, hash1 is better. It is 10 times faster than hash2. Though there are collisions, that's less enough.
 
@@ -122,7 +122,7 @@ The time complexity of every query become $O(\sum intersection[i])$. Although th
 
 ### Flowchart
 
-[Magical link]()
+[Magical link](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/flowchart.svg)
 
 ## Result Analysis
 
@@ -164,4 +164,4 @@ We the following tools to support our development:
 
 ## Appendix II: Repository Structure
 
-[Magical link]
+[Magical link](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/structure.txt)
