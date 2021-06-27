@@ -6,6 +6,8 @@ geometry: margin=2cm
 
 Team 4: B08902146, B09902056, B09902102
 
+[Source Code](https://github.com/dl8sd11/Email_Searcher) (Will be public after 6/28)
+
 ## Data Analysis
 
 The mails are the subset of mails for the previous year, so we decided to take a glance at the data. Here are some information we gathered:
