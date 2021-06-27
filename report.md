@@ -18,7 +18,7 @@ The mails are the subset of mails for the previous year, so we decided to take a
     - most mails have small token set
     - max: 3412
 
-The token size distrubution graph can be found in [graph.html](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/plot.html)
+The token size distrubution graph can be found in [plot.html](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/plot.html)
 
 ## Algorithms
 
@@ -26,7 +26,7 @@ The token size distrubution graph can be found in [graph.html](https://www.csie.
     
 We compare 2 hashes by their time cost and collision probability.
 
-Time cost: hashing a string(strlen=10) 10^8 times
+Time cost: hashing a string(strlen=10) $10^8$ times
 
 Collision probability: keep hashing random string of strlen=10 to figure out the maximum set size of hash table without collision until it expands to 200000
 
@@ -153,7 +153,7 @@ We found out that the point per time we get among the type of query differs grea
 
 ### Score
 
-Finally, we score 77777777pts.
+Finally, we score 2543283.77pts.
 
 ## Appendix I: Tools
 
@@ -164,4 +164,4 @@ We the following tools to support our development:
 
 ## Appendix II: Repository Structure
 
-[Repository Structure](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/structure.txt)
+[Repository Structure](https://www.csie.ntu.edu.tw/~b09902102/dsa/email-searcher/structure.html)
